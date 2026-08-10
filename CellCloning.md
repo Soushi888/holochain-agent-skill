@@ -22,7 +22,7 @@ roles:
   - name: group_spaces
     provisioning:
       strategy: create
-      deferred: true       # not created on install — app creates cells on demand
+      deferred: false      # provisioned on install; clones created on demand
     dna:
       bundled: "./group_spaces.dna"
       modifiers:
@@ -83,6 +83,7 @@ await appClient.enableCloneCell({ clone_cell_id: clonedCellId });
 - The maximum number of clones is set by `clone_limit` in `happ.yaml` — plan capacity upfront
 - Each clone's network seed must be unique — using the same seed creates the same network
 - Cloned cells share the same WASM binary but have separate source chains and DHTs
-- `deferred: true` is required for clonable roles — they are not provisioned on install
+- `deferred: true` is not required for clonable roles — a provisioned role can be cloned, as two production manifests do with a non-zero clone limit
+- Avoid `deferred: true` and `strategy: clone_only` — both leave a role with no provisioned cell, which reaches an unimplemented branch in `holochain_conductor_api-0.6.1/src/app_interface.rs` (line 491) when `AppInfo` is assembled, panicking the conductor
 
 **Reference:** [developer.holochain.org/build/cell-cloning/](https://developer.holochain.org/build/cell-cloning/)
