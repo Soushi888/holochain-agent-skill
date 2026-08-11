@@ -21,6 +21,7 @@ Entries marked **(verified)** were reproduced on Holochain 0.7.0 while building 
 | `feature wasmer_sys does not exist` | Renamed in 0.7 | `wasmer-sys-cranelift` |
 | `feature transport-iroh does not exist` | Removed; iroh is compiled in unconditionally | Drop it from the feature list |
 | Build fails looking for `perl` | A holochain build dependency needs it on PATH, usually surfacing only when building a Sweettest suite | Add `perl` to the `packages` list in `flake.nix` |
+| `non-exhaustive patterns: AdminRequest::DumpOpTimings { .. } not covered`, raised **inside the `holochain` crate itself** **(verified)** | Version skew: the `holochain` crate is pinned to a `0.7.0-rc` while `holochain_conductor_api` resolves to stable `0.7.0`, which added the `DumpOpTimings` variant the rc does not handle. `hc scaffold` 0.700.0-rc emits exactly this combination | Pin `holochain` to stable `0.7.0` in `[workspace.dependencies]`, then `cargo update -p holochain`. Never leave the scaffolder's rc pins in place |
 
 ---
 
