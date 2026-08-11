@@ -35,7 +35,7 @@
 - **Playwright** + **`@holochain/client`** — Browser automation against a real conductor. No mocks.
 - **Wind-Tunnel** (`holochain_wind_tunnel_runner`) — Rust load testing. Separate repo. Measures latency, throughput, DHT sync lag. Used for Holochain core CI performance regression. See `WindTunnel.md`.
 
-**Note on Tryorama:** Deprecated for HDK 0.7+ by the Holochain team. This skill targets HDK 0.6.1, where Tryorama technically still works, but Sweettest is the recommended path even on 0.6.x — the API is cleaner and forward-compatible. Use Sweettest for all new integration tests.
+**Note on Tryorama:** The scaffolding tool no longer generates it, and Holochain no longer maintains it. It now lives at [holochain-open-dev/tryorama](https://github.com/holochain-open-dev/tryorama) as a community project. This skill targets Sweettest only. If you are maintaining a legacy suite, the community fork tracks 0.7; everything else here assumes you are not.
 
 ---
 
@@ -63,7 +63,7 @@
 
 ```toml
 [dev-dependencies]
-holochain = { version = "=0.6.1", features = ["test_utils"] }
+holochain = { version = "=0.7.0", default-features = false, features = ["encryption", "wasmer-sys-cranelift", "test_utils"] }
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -110,7 +110,7 @@ async fn two_agents_can_share_entries() {
         .call(&alice_zome, "create_my_entry", my_payload)
         .await;
 
-    // 6. Wait for DHT consistency (replaces Tryorama's dhtSync)
+    // 6. Wait for DHT consistency before any cross-agent read
     await_consistency(&[&alice_cell, &bob_cell]).await.unwrap();
 
     // 7. Bob reads the entry
@@ -125,7 +125,7 @@ async fn two_agents_can_share_entries() {
 
 ### CRITICAL: await_consistency is MANDATORY Before Cross-Agent Reads
 
-The Rust equivalent of Tryorama's `dhtSync`:
+Every cross-agent read must be preceded by it:
 
 ```rust
 // After any write, before cross-agent reads:
@@ -522,7 +522,7 @@ authenticate_app_ws_client(app_sender.clone(), admin_port, "my-app".to_string())
 
 ## E2E UI Testing (Playwright + Real Conductor)
 
-For full end-to-end tests that drive the UI against a real Holochain backend — no mocks. Use `@holochain/client` directly — Tryorama is deprecated.
+For full end-to-end tests that drive the UI against a real Holochain backend — no mocks. Use `@holochain/client` directly against a conductor you start yourself.
 
 ### Setup (package.json)
 
@@ -530,7 +530,7 @@ For full end-to-end tests that drive the UI against a real Holochain backend —
 {
   "devDependencies": {
     "@playwright/test": "^1.40.0",
-    "@holochain/client": "^0.18.0"
+    "@holochain/client": "^0.21.0"
   }
 }
 ```

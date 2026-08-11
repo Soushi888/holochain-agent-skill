@@ -23,7 +23,7 @@ Scaffold.md           Holonix setup, Nix flake, hc CLI commands, project scaffol
 AccessControl.md      Capability grants, cap claims, admin-only patterns, init() setup
 CellCloning.md        Clone cells, partitioned data, createCloneCell, clone_limit
 ErrorHandling.md      thiserror enums, WasmError, ExternResult patterns
-Testing.md            Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, inline zomes, test organization (Tryorama deprecated)
+Testing.md            Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, inline zomes, test organization
 WindTunnel.md         Performance/load testing with wind-tunnel framework
 TypeScript.md         holochain-client setup, callZome, signals, SvelteKit integration
 Deployment.md         Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
@@ -46,9 +46,9 @@ Context files are loaded **on demand**, not all at once. When editing `SKILL.md`
 ## Version Pins (update all occurrences when bumping)
 
 ```
-hdk = "=0.6.1"
-hdi = "=0.7.1"
-holonix ref=main-0.6
+hdk = "=0.7.0"
+hdi = "=0.8.0"
+holonix ref=main-0.7
 ```
 
 Exact pins (`=`) are required — Holochain is sensitive to minor version changes. When updating version pins, grep all files for the old version string and update every occurrence including `SKILL.md` Quick Reference, `Architecture.md` workspace examples, and any code blocks in context files.

@@ -29,6 +29,7 @@
 
 - [Design Data Model](Workflows/DesignDataModel.md)
 - [Scaffold New Project](Workflows/Scaffold.md)
+- [Manual Scaffold](Workflows/ManualScaffold.md)
 - [Implement Zome](Workflows/ImplementZome.md)
 - [Design Access Control](Workflows/DesignAccessControl.md)
 - [Review Zome](Workflows/ReviewZome.md)

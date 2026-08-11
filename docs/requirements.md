@@ -30,9 +30,9 @@ A secondary goal is enabling the wider Holochain community to benefit from AI-as
 | FR-01 | Skill must cover Architecture domain | Must | `Architecture.md` loads on request; covers coordinator/integrity split, DNA structure, Nix, progenitor, multi-DNA, private entries |
 | FR-02 | Skill must cover Design domain | Must | `Workflows/DesignDataModel.md` guides entry/link type design with output artifacts |
 | FR-03 | Skill must cover Scaffold domain | Must | `Scaffold.md` + `Workflows/Scaffold.md` cover: Holonix setup, Nix flake, hc CLI, `hc scaffold` commands, new project workflow, add-domain-to-existing workflow |
-| FR-04 | Scaffold workflow follows official Holochain documentation | Must | Commands and patterns reference developer.holochain.org; version pins current (hdk=0.6.1, hdi=0.7.1) |
+| FR-04 | Scaffold workflow follows official Holochain documentation | Must | Commands and patterns reference developer.holochain.org; version pins current (hdk=0.7.0, hdi=0.8.0) |
 | FR-05 | Skill must cover Implementation domain | Must | `Patterns.md` covers entry types, link types, CRUD, cross-zome calls, signals, validation, HDK 0.6 API |
-| FR-06 | Skill must cover Testing domain | Must | `Testing.md` covers Tryorama setup, two-agent scenarios, `dhtSync`, update/delete patterns |
+| FR-06 | Skill must cover Testing domain | Must | `Testing.md` covers Sweettest setup, two-agent scenarios, `await_consistency`, update/delete patterns |
 | FR-07 | Skill must cover Deployment domain | Must | `Deployment.md` + `Workflows/PackageAndDeploy.md` cover Kangaroo-Electron packaging, CI/CD, versioning |
 | FR-08 | Skill must be PAI-independent | Must | No voice notification curl, no SKILLCUSTOMIZATIONS hook, no PROJECTS.md references, no Algorithm routing; works in vanilla Claude Code |
 | FR-09 | Skill must include installation documentation | Must | `README.md` with 3 installation options (global, project-local, symlink), quick start examples |
@@ -47,7 +47,7 @@ A secondary goal is enabling the wider Holochain community to benefit from AI-as
 | ID | Category | Requirement | Target |
 |----|----------|-------------|--------|
 | NFR-01 | Portability | Works with zero PAI infrastructure | Verified by install in fresh Claude Code with no `~/.claude/PAI/` |
-| NFR-02 | Currency | Version pins match current stable Holochain | hdk=0.6.1, hdi=0.7.1, holonix ref=main-0.6 at release |
+| NFR-02 | Currency | Version pins match current stable Holochain | hdk=0.7.0, hdi=0.8.0, holonix ref=main-0.7 at release |
 | NFR-03 | Completeness | All 6 domains have content | No stub files in v1 release |
 | NFR-04 | Accuracy | Code examples compile and run correctly | Examples tested against real hAppenings/Nondominium codebase |
 

@@ -10,13 +10,13 @@ description: >
   or packaging hApps, or working on any Holochain project.
 license: Apache-2.0
 compatibility: >
-  Requires Nix dev environment (holonix ref=main-0.6). Rust toolchain managed
+  Requires Nix dev environment (holonix ref=main-0.7). Rust toolchain managed
   by Nix — no separate rustup install needed. Network access required for
   hc scaffold and nix flake updates.
 metadata:
   author: soushi888
   version: "0.2.0"
-  holochain-versions: "hdk=0.6.1, hdi=0.7.1, holonix ref=main-0.6"
+  holochain-versions: "hdk=0.7.0, hdi=0.8.0, holonix ref=main-0.7"
 ---
 
 # Holochain Development Skill
@@ -70,7 +70,7 @@ Load on demand based on task:
 ## Quick Reference
 
 ```
-Versions (current stable):  hdk = "=0.6.1"   hdi = "=0.7.1"   holonix ref=main-0.6
+Versions (current stable):  hdk = "=0.7.0"   hdi = "=0.8.0"   holonix ref=main-0.7
 Dev commands:  nix develop  |  hc s sandbox generate workdir/  |  bun run test
 Scaffold:      hc scaffold entry-type MyEntry  |  hc scaffold link-type AgentToMyEntry
 ```

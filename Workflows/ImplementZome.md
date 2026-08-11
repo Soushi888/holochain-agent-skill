@@ -286,7 +286,7 @@ Update workspace `Cargo.toml` to include utils crate.
 
 ## Step 5: Tests
 
-Write tests in this order. Use **Sweettest** (Rust, `cargo test`) or **Tryorama** (TypeScript, `bun run test`) — see `Testing.md` for full patterns for both.
+Write tests in this order using **Sweettest** (Rust, `cargo test`) — the primary testing framework for this skill. See `Testing.md` for full patterns.
 
 **Foundation (single-agent):**
 ```
@@ -299,24 +299,18 @@ Write tests in this order. Use **Sweettest** (Rust, `cargo test`) or **Tryorama*
 
 **Integration (two agents):**
 ```
-1. Alice creates → await_consistency / dhtSync → Bob reads — assert cross-agent read works
-2. Alice creates → await_consistency / dhtSync → Bob gets all — assert entry in collection
-3. Alice creates → updates → await_consistency / dhtSync → Bob gets latest — assert latest version
+1. Alice creates → await_consistency → Bob reads — assert cross-agent read works
+2. Alice creates → await_consistency → Bob gets all — assert entry in collection
+3. Alice creates → updates → await_consistency → Bob gets latest — assert latest version
 ```
 
-**Sweettest (Rust) commands:**
+**Sweettest commands:**
 ```bash
 cargo test --package my_dna_tests
 cargo test --package my_dna_tests two_agents  # single test
 ```
 
-**Tryorama (TypeScript) commands:**
-```bash
-bun run test:foundation
-bun run test:integration
-```
-
-See `Testing.md` for full code patterns including `await_consistency` (Sweettest) and `dhtSync` (Tryorama) placement.
+See `Testing.md` for full code patterns including `await_consistency_60s` placement, `SweetConductorBatch` setup, and inline-zome shortcuts.
 
 ---
 

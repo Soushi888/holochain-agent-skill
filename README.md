@@ -12,10 +12,10 @@ A comprehensive [Agent Skills Open Standard](https://agentskills.io) skill for H
 | **Design** | DHT data modeling, entry/link type design, discovery strategy, validation rules |
 | **Scaffold** | Holonix setup, Nix flake, `hc` CLI, `hc scaffold` commands, new project and new domain workflows |
 | **Implement** | Entry types, link types, CRUD patterns, cross-zome calls, signals, validation, HDK 0.6 API |
-| **Test** | Sweettest two-agent scenarios, `await_consistency`, update/delete patterns, inline zomes, test organization (Tryorama deprecated) |
+| **Test** | Sweettest two-agent scenarios, `await_consistency`, update/delete patterns, inline zomes, test organization |
 | **Deploy** | Kangaroo-Electron packaging, `.webhapp` bundling, CI/CD, versioning semantics, auto-update |
 
-**Current version pins:** `hdk = "=0.6.1"` | `hdi = "=0.7.1"` | `holonix ref=main-0.6`
+**Current version pins:** `hdk = "=0.7.0"` | `hdi = "=0.8.0"` | `holonix ref=main-0.7`
 
 ## Installation
 
@@ -138,7 +138,7 @@ Scaffold.md           Dev environment and project scaffolding
 AccessControl.md      Capability grants system
 CellCloning.md        Partitioned data via clone cells
 ErrorHandling.md      thiserror + WasmError patterns
-Testing.md            Sweettest patterns (Tryorama deprecated)
+Testing.md            Sweettest patterns
 TypeScript.md         holochain-client, signals, Svelte integration
 Deployment.md         Kangaroo-Electron packaging and distribution
 Workflows/            Step-by-step guided workflows

@@ -27,12 +27,14 @@ Users receive a single installer (`.exe` / `.dmg` / `.AppImage`) with no Holocha
 
 | Branch | Holochain version | Status | Use when |
 |--------|-------------------|--------|----------|
-| `main` | 0.7.0-dev.x | Development | Cutting edge / experimental only |
-| `main-0.6` | 0.6.1 | **Recommended** | New production projects |
-| `main-0.5` | 0.5.x | Legacy | Existing 0.5.x apps only |
-| `main-0.3` | 0.3.x | Archived | Old apps only |
+| `main` | 0.7.0 | Development | Tracks the latest line; moves without warning |
+| `main-0.7` | 0.7.0 | **Recommended** | New production projects |
+| `main-0.6` | 0.6.3 | Legacy | Existing 0.6.x apps not yet ported |
+| `main-0.5` | 0.5.x | Archived | Old apps only |
 
-**Default choice: `main-0.6`** unless you have a specific reason to use another.
+**Default choice: `main-0.7`** unless you have a specific reason to use another.
+
+Pin to a versioned branch rather than `main`. `main` follows whatever core is current, so a clone taken a month apart can produce two different conductors.
 
 ---
 
@@ -69,7 +71,7 @@ xcode-select --install
 # Clone and checkout the right branch
 git clone https://github.com/holochain/kangaroo-electron
 cd kangaroo-electron
-git checkout main-0.6
+git checkout main-0.7
 
 # Install dependencies (auto-fetches conductor binaries with SHA256 validation)
 npm install
@@ -118,7 +120,7 @@ For dev mode you don't need a `.webhapp`. Instead, `kangaroo.config.ts` accepts:
 
 **`electron/config.ts`**
 ```typescript
-export const HOLOCHAIN_VERSION = "holochain-0.6.1"; // match your branch
+export const HOLOCHAIN_VERSION = "holochain-0.7.0"; // match your branch
 export const APP_ID = "com.yourorg.yourapp";             // reverse-domain identifier
 export const PRODUCT_NAME = "Your App Name";              // alphanumeric + hyphens on Windows
 export const HAPP_PATH = "pouch/your-app.webhapp";
@@ -143,18 +145,20 @@ Kangaroo uses a versioning convention that controls user data isolation:
 
 ---
 
-## Network Transport (0.6+)
+## Network Transport (0.7)
 
-Holochain 0.6 replaced **tx5** with **iroh** as the default network transport.
+Holochain 0.6 introduced **iroh** alongside tx5. **0.7 removed tx5 and WebRTC entirely** — iroh over QUIC is the only transport, and it is compiled in unconditionally, so the `transport-iroh` Cargo feature no longer exists.
 
-If your app targets 0.6+, your conductor config must include a `relayUrl`:
+Your conductor config needs a `relayUrl` and must **not** carry `signalUrl` or `webrtcConfig`:
 
 ```typescript
-// In your Kangaroo conductor config
-relayUrl: "wss://relay.holochain.org"  // official relay, or run your own
+// kangaroo.config.ts on main-0.7
+bootstrapUrl: 'https://dev-test-bootstrap2.holochain.org/',
+relayUrl: 'https://dev-test-bootstrap2.holochain.org/',
+// signalUrl: removed in 0.7 — see below
 ```
 
-Apps migrated from 0.5.x without this update will fail to establish peer connections.
+This is not a field that gets ignored. `NetworkConfig` rejects unknown fields, so a config left over from 0.6 that still sets `signal_url` or `webrtc_config` makes the conductor **fail to start** rather than warn.
 
 ---
 
@@ -216,7 +220,9 @@ Kangaroo uses `@matthme/electron-updater` — a semver-aware fork of `electron-u
 | Error / Symptom | Cause | Fix |
 |-----------------|-------|-----|
 | App won't start after version bump | Minor/major bump → new isolated data folder | Expected behavior. User data not migrated automatically — implement migration if needed. |
-| Network connectivity fails | iroh relay not configured (0.6+) | Add `relayUrl` to conductor config in `electron/config.ts` |
+| Network connectivity fails | iroh relay not configured | Add `relayUrl` to conductor config in `electron/config.ts` |
+| Conductor exits immediately on start | Config still sets `signal_url` / `webrtc_config` / `chc_url` / `db_sync_strategy` | Remove them. 0.7 rejects unknown `NetworkConfig` fields instead of ignoring them. `db_sync_strategy` is now `db_sync_level` (`Full`/`Normal`/`Off`) |
+| Conductor can't read existing data after upgrade | 0.7 renamed its databases and changed DNA hashes | Expected. There is no migration path; clear conductor data (`hc sandbox clean`). You are joining a new network |
 | Binary checksum mismatch | Corrupted or incomplete download | `rm -rf node_modules/.cache && npm install` |
 | Windows MSI build fails | Special characters in `PRODUCT_NAME` | Use only alphanumeric characters and hyphens in `PRODUCT_NAME` |
 

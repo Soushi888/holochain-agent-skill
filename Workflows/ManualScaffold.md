@@ -34,7 +34,7 @@ cd <APP_NAME>
   description = "Flake for Holochain app development";
 
   inputs = {
-    holonix.url = "github:holochain/holonix?ref=main-0.6";
+    holonix.url = "github:holochain/holonix?ref=main-0.7";
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
   };
@@ -46,7 +46,7 @@ cd <APP_NAME>
       devShells.default = pkgs.mkShell {
         inputsFrom = [ inputs'.holonix.devShells.default ];
         packages = (with pkgs; [
-          nodejs_22
+          nodejs_24
           binaryen
           bun
         ]);
@@ -73,8 +73,8 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "=0.7.1"
-hdk = "=0.6.1"
+hdi = "=0.8.0"
+hdk = "=0.7.0"
 holochain_serialized_bytes = "*"
 serde = "1.0"
 
@@ -929,7 +929,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-holochain = { version = "=0.6.1", features = ["test_utils"] }
+holochain = { version = "=0.7.0", default-features = false, features = ["encryption", "wasmer-sys-cranelift", "test_utils"] }
 tokio     = { version = "1", features = ["full"] }
 ```
 
@@ -942,129 +942,6 @@ members = [
     "dnas/<DNA_NAME>/tests",
 ]
 ```
-
----
-
-> **Tryorama (TypeScript) — deprecated.** `hc scaffold happ` generates a TypeScript/Tryorama test scaffold under `tests/` as a convenience. The files are provided below for completeness but Tryorama is not the recommended path for new test work. Use Sweettest.
-
-<details>
-<summary>Tryorama scaffold files (for reference only)</summary>
-
-### `tests/package.json`
-
-```json
-{
-  "name": "tests",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@msgpack/msgpack": "^2.8.0",
-    "@holochain/client": "^0.20.0",
-    "@holochain/tryorama": "^0.19.0",
-    "typescript": "^5.6.3",
-    "vitest": "^3.1.3"
-  },
-  "type": "module"
-}
-```
-
-### `tests/vitest.config.ts`
-
-```typescript
-import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  test: {
-    testTimeout: 60 * 1000 * 4,
-    poolOptions: { forks: { singleFork: true } },
-  },
-});
-```
-
-### `tests/tsconfig.json`
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
-  }
-}
-```
-
-### `tests/src/<DNA_NAME>/<ZOME_NAME>/common.ts`
-
-```typescript
-import { Record } from "@holochain/client";
-import { CallableCell } from "@holochain/tryorama";
-
-export async function sample<EntryType>(cell: CallableCell, partial<EntryType> = {}) {
-  return {
-    ...{
-      field1: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    },
-    ...partial<EntryType>,
-  };
-}
-
-export async function create<EntryType>(
-  cell: CallableCell,
-  <entry_type> = undefined,
-): Promise<Record> {
-  return cell.callZome({
-    zome_name: "<ZOME_NAME>",
-    fn_name: "create_<entry_type>",
-    payload: <entry_type> || (await sample<EntryType>(cell)),
-  });
-}
-```
-
-### `tests/src/<DNA_NAME>/<ZOME_NAME>/<entry_type>.test.ts`
-
-```typescript
-import { assert, test } from "vitest";
-import { Record, AppBundleSource } from "@holochain/client";
-import { dhtSync, runScenario } from "@holochain/tryorama";
-import { decode } from "@msgpack/msgpack";
-import { create<EntryType>, sample<EntryType> } from "./common.js";
-
-const testAppPath = process.cwd() + "/../workdir/<APP_NAME>.happ";
-const appSource = { appBundleSource: { type: "path", value: testAppPath } as AppBundleSource };
-
-test("create <EntryType>", async () => {
-  await runScenario(async scenario => {
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
-    await scenario.shareAllAgents();
-    const record: Record = await create<EntryType>(alice.cells[0]);
-    assert.ok(record);
-  });
-});
-
-test("create and read <EntryType>", async () => {
-  await runScenario(async scenario => {
-    const [alice, bob] = await scenario.addPlayersWithApps([appSource, appSource]);
-    await scenario.shareAllAgents();
-    const sample = await sample<EntryType>(alice.cells[0]);
-    const record: Record = await create<EntryType>(alice.cells[0], sample);
-    assert.ok(record);
-    await dhtSync([alice, bob], alice.cells[0].cell_id[0]);
-    const readOutput: Record = await bob.cells[0].callZome({
-      zome_name: "<ZOME_NAME>",
-      fn_name: "get_original_<entry_type>",
-      payload: record.signed_action.hashed.hash,
-    });
-    assert.deepEqual(sample, decode((readOutput.entry as any).Present.entry) as any);
-  });
-});
-```
-
-</details>
 
 ---
 

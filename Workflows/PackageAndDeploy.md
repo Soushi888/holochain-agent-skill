@@ -12,16 +12,16 @@ Confirm your hApp targets a supported Kangaroo-Electron branch and that your con
 
 **Check your Cargo.toml versions:**
 ```toml
-hdk = "=0.6.1"
-hdi = "=0.7.1"
+hdk = "=0.7.0"
+hdi = "=0.8.0"
 ```
 
 **Check for iroh transport (required for 0.6+):**
 Ensure your conductor config or app configuration includes a `relayUrl`. If your app was built for 0.5.x, you must add this before deploying on 0.6+.
 
-**Checkpoint:** You know which Kangaroo branch to use (`main-0.6` for 0.6.x apps).
+**Checkpoint:** You know which Kangaroo branch to use (`main-0.7` for 0.7.x apps).
 
-**Common mistake:** Using `main` (0.7.0-dev) for a production app. Use `main-0.6` unless you explicitly need cutting-edge features.
+**Common mistake:** Using `main` for a production app. `main` follows the current line and moves without warning. Use `main-0.7` unless you explicitly need cutting-edge features.
 
 ---
 
@@ -32,7 +32,7 @@ Clone the repository and install dependencies.
 ```bash
 git clone https://github.com/holochain/kangaroo-electron
 cd kangaroo-electron
-git checkout main-0.6
+git checkout main-0.7
 npm install
 ```
 
@@ -40,7 +40,7 @@ npm install
 
 **Checkpoint:** `node_modules/` is populated and `npm run start` doesn't error on missing binaries.
 
-**Common mistake:** Forgetting to `git checkout main-0.6` after cloning (defaults to `main` / 0.7.0-dev).
+**Common mistake:** Forgetting to `git checkout main-0.7` after cloning (defaults to `main`, which tracks the latest line).
 
 ---
 
@@ -155,7 +155,7 @@ Apply the correct version bump type for each future release.
 ## Quick Reference
 
 ```
-Setup:   git checkout main-0.6  →  npm install
+Setup:   git checkout main-0.7  →  npm install
 Dev:     npm run start
 Build:   npm run kangaroo
 Publish: git push origin HEAD:release

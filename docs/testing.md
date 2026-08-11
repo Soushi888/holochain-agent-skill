@@ -27,7 +27,7 @@ head -25 SKILL.md
 | T1.8 | `compatibility` field present and non-empty | Key exists, value not blank |
 | T1.9 | `metadata.author` is `soushi888` | Value matches |
 | T1.10 | `metadata.version` is present | Key exists, SemVer format |
-| T1.11 | `metadata.holochain-versions` references current pins | Contains `hdk=0.6.1`, `hdi=0.7.1`, `holonix ref=main-0.6` |
+| T1.11 | `metadata.holochain-versions` references current pins | Contains `hdk=0.7.0`, `hdi=0.8.0`, `holonix ref=main-0.7` |
 
 ---
 
@@ -83,7 +83,7 @@ For each Context Files entry in `SKILL.md`:
 | T3.9 | cap grants | `AccessControl.md` | Contains `CapAccess::Unrestricted` and `init()` |
 | T3.10 | cell cloning | `CellCloning.md` | Contains `createCloneCell` and `clone_limit` |
 | T3.11 | WasmError | `ErrorHandling.md` | Contains `WasmError` and `ExternResult` |
-| T3.12 | Tryorama tests | `Testing.md` | Contains `dhtSync` and two-agent scenario |
+| T3.12 | Sweettest tests | `Testing.md` | Contains `await_consistency` and two-agent scenario |
 | T3.13 | holochain-client | `TypeScript.md` | Contains `callZome` and signal handling |
 | T3.14 | packaging, Kangaroo | `Deployment.md` | Contains `.webhapp` and versioning guidance |
 
@@ -99,14 +99,14 @@ Verify each of the 6 skill domains has substantive (non-stub) content.
 | T4.2 | Design | `Workflows/DesignDataModel.md` | Has at least 4 numbered steps with examples |
 | T4.3 | Scaffold | `Scaffold.md` + `Workflows/Scaffold.md` | Contains `nix develop`, `hc scaffold happ`, Nix flake template |
 | T4.4 | Implement | `Patterns.md` | Contains CRUD patterns, link types, validation section |
-| T4.5 | Test | `Testing.md` | Contains Tryorama setup, `dhtSync`, two-agent example |
+| T4.5 | Test | `Testing.md` | Contains Sweettest setup, `await_consistency`, two-agent example |
 | T4.6 | Deploy | `Deployment.md` + `Workflows/PackageAndDeploy.md` | Contains `kangaroo-electron`, `.webhapp` bundling, versioning |
 
 ---
 
 ## T5 — Code Example Accuracy
 
-Validate specific API calls against the actual HDK 0.6 API (use the hAppenings or Nondominium codebase as reference).
+Validate specific API calls against the actual HDK 0.7 API (use the hAppenings or Nondominium codebase as reference).
 
 ### HDK / HDI API
 
@@ -122,7 +122,7 @@ Validate specific API calls against the actual HDK 0.6 API (use the hAppenings o
 | T5.8 | Validation signature | `pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult>` | `Patterns.md` |
 | T5.9 | `post_commit` infallible | `#[hdk_extern(infallible)]` + `pub fn post_commit(...)` | `Architecture.md` or `Patterns.md` |
 | T5.10 | Remote signal cap grant | `CapAccess::Unrestricted` grant created in `init()` | `AccessControl.md` |
-| T5.11 | `dhtSync` call | `dhtSync([&alice, &bob], &conductor)` or equivalent Tryorama API | `Testing.md` |
+| T5.11 | consistency call | `await_consistency(&[&alice_cell, &bob_cell])` | `Testing.md` |
 | T5.12 | Scaffold compile check | `hc s sandbox generate workdir/` | `Workflows/ImplementZome.md` |
 
 ### Version pin consistency `[auto]`
@@ -135,11 +135,11 @@ grep -rn "holonix" . --include="*.md" | grep -v Plans/
 
 | # | Check | Expected value | Pass condition |
 |---|-------|----------------|----------------|
-| T5.13 | `hdk` pin in SKILL.md Quick Reference | `"=0.6.1"` | All occurrences match |
-| T5.14 | `hdi` pin in SKILL.md Quick Reference | `"=0.7.1"` | All occurrences match |
-| T5.15 | `holonix ref` in SKILL.md and Scaffold.md | `main-0.6` | All occurrences match |
-| T5.16 | No file references `hdk = "0.5.*"` or older | — | Zero matches |
-| T5.17 | PackageAndDeploy.md Cargo.toml example pins match current | `hdk = "=0.6.1"` | Matches T5.13 |
+| T5.13 | `hdk` pin in SKILL.md Quick Reference | `"=0.7.0"` | All occurrences match |
+| T5.14 | `hdi` pin in SKILL.md Quick Reference | `"=0.8.0"` | All occurrences match |
+| T5.15 | `holonix ref` in SKILL.md and Scaffold.md | `main-0.7` | All occurrences match |
+| T5.16 | No file references `hdk = "0.6.*"` or older | — | Zero matches |
+| T5.17 | PackageAndDeploy.md Cargo.toml example pins match current | `hdk = "=0.7.0"` | Matches T5.13 |
 
 ---
 
@@ -198,9 +198,9 @@ Verify the skill loads and responds correctly in Claude Code.
 |---|------|-------|----------------|
 | T7.1 | Explicit command invocation | Type `/holochain` in Claude Code | Skill loads, greets with Holochain context |
 | T7.2 | Natural language trigger — workflow | Type "implement zome for Profile entry type" | `Workflows/ImplementZome.md` guidance appears |
-| T7.3 | Natural language trigger — context file | Type "how do I set up a Tryorama test?" | `Testing.md` content cited |
+| T7.3 | Natural language trigger — context file | Type "how do I set up a Sweettest test?" | `Testing.md` content cited |
 | T7.4 | Natural language trigger — scaffold | Type "scaffold a new happ called my-network" | `Workflows/Scaffold.md` steps appear |
-| T7.5 | Version question | Ask "what version of hdk does this skill target?" | Responds with `0.6.1` |
+| T7.5 | Version question | Ask "what version of hdk does this skill target?" | Responds with `0.7.0` |
 | T7.6 | Out-of-scope question | Ask a non-Holochain question | Skill does not answer as if it's Holochain-related |
 
 ---
@@ -243,7 +243,7 @@ For each workflow, walk through the steps in Claude Code with a real or simulate
 | # | Step | Pass condition |
 |---|------|----------------|
 | T9.B.1 | Nix install step | Provides `curl` Determinate Nix installer command |
-| T9.B.2 | flake.nix creation | Provides template with `holonix ref=main-0.6` |
+| T9.B.2 | flake.nix creation | Provides template with `holonix ref=main-0.7` |
 | T9.B.3 | `hc scaffold happ` command | Correct command with app name parameter |
 | T9.B.4 | First DNA scaffold | `hc scaffold dna` command shown |
 | T9.B.5 | First zome pair scaffold | `hc scaffold zome` for integrity + coordinator |
@@ -262,7 +262,7 @@ For each workflow, walk through the steps in Claude Code with a real or simulate
 | T9.C.5 | Coordinator — read | Produces `get_profile()` using `get()` with `GetOptions::default()` |
 | T9.C.6 | Coordinator — update | Uses `update_entry()` and `create_link()` for update chain |
 | T9.C.7 | Coordinator — delete | Uses `delete_entry()` and handles link cleanup |
-| T9.C.8 | Test scaffold | Produces at minimum a two-agent Tryorama test structure |
+| T9.C.8 | Test scaffold | Produces at minimum a two-agent Sweettest structure |
 
 ### T9.D — DesignAccessControl
 
@@ -338,7 +338,7 @@ Covered by T7 and T9 above.
 | T11.1 | `LICENSE` file is Apache-2.0 | `head -3 LICENSE` | Contains "Apache License, Version 2.0" |
 | T11.2 | No `Plans/` content ships as skill | `SKILL.md` routing table has no reference to `Plans/` | Zero `Plans/` entries in routing table |
 | T11.3 | No `docs/` loaded by skill | `SKILL.md` routing table has no reference to `docs/` | Zero `docs/` entries in routing table |
-| T11.4 | No broken markdown links | Scan for `[text](file.md)` links in all files | All linked files exist |
+| T11.4 | No broken markdown links | Scan for relative markdown links in all files | All linked files exist |
 | T11.5 | No TODO / STUB markers | `grep -rn "TODO\|STUB\|PLACEHOLDER" . --include="*.md"` | Zero matches in non-Plans/ files |
 | T11.6 | README reflects current install path | `grep "holochain-agent-skill" README.md` | All cp/ln commands use `holochain-agent-skill` as source |
 | T11.7 | CLAUDE.md license annotation | `grep "Apache" CLAUDE.md` | Matches `Apache-2.0` |

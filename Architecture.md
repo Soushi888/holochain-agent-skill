@@ -76,8 +76,8 @@ members = [
 ]
 
 [workspace.dependencies]
-hdi = "=0.7.1"
-hdk = "=0.6.1"
+hdi = "=0.8.0"
+hdk = "=0.7.0"
 serde = { version = "1", features = ["derive"] }
 thiserror = "1"
 ```
@@ -104,12 +104,12 @@ serde = { workspace = true }
 
 ## Nix Dev Environment
 
-Standard `flake.nix` using holonix (pin to `main-0.6` branch for HDK 0.6.x):
+Standard `flake.nix` using holonix (pin to `main-0.7` branch for HDK 0.7.x):
 
 ```nix
 {
   inputs = {
-    holonix.url = "github:holochain/holonix?ref=main-0.6";
+    holonix.url = "github:holochain/holonix?ref=main-0.7";
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
   };

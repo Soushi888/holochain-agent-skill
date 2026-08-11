@@ -40,7 +40,7 @@ mkdir bootstrap-holonix && cd bootstrap-holonix
   description = "Flake for Holochain app development";
 
   inputs = {
-    holonix.url = "github:holochain/holonix?ref=main-0.6";
+    holonix.url = "github:holochain/holonix?ref=main-0.7";
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
   };
@@ -52,7 +52,7 @@ mkdir bootstrap-holonix && cd bootstrap-holonix
       devShells.default = pkgs.mkShell {
         inputsFrom = [ inputs'.holonix.devShells.default ];
         packages = (with pkgs; [
-          nodejs_22
+          nodejs_24
           binaryen
           bun
         ]);
@@ -106,8 +106,8 @@ Check `Cargo.toml` at the root uses exact version pins:
 
 ```toml
 [workspace.dependencies]
-hdi = "=0.7.1"
-hdk = "=0.6.1"
+hdi = "=0.8.0"
+hdk = "=0.7.0"
 serde = { version = "1", features = ["derive"] }
 ```
 
@@ -165,7 +165,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-holochain = { version = "=0.6.1", features = ["test_utils"] }
+holochain = { version = "=0.7.0", default-features = false, features = ["encryption", "wasmer-sys-cranelift", "test_utils"] }
 tokio     = { version = "1", features = ["full"] }
 ```
 
@@ -185,10 +185,6 @@ cargo test --package <dna_name>_tests
 ```
 
 **Checkpoint:** `cargo test --package <dna_name>_tests` compiles (no tests yet is fine).
-
----
-
-> **Tryorama (TypeScript) — deprecated.** `hc scaffold happ` generates a TypeScript/Tryorama test suite under `tests/` (with `@holochain/tryorama` and vitest). These files ship with the scaffold output but Tryorama is not the recommended path for new test work. Use Sweettest instead. If you need to run the generated Tryorama tests: `cd tests && bun install && cd .. && bun run test`.
 
 ---
 

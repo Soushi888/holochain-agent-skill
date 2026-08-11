@@ -24,14 +24,14 @@ experimental-features = nix-command flakes
 
 ## Standard flake.nix (Holonix)
 
-Pin to `main-0.6` for HDK 0.6.x stability. The full template below matches what `hc scaffold happ` generates — it includes `bun`, `nodejs_22`, and `binaryen` which are needed for the JS test suite and WASM optimisation:
+Pin to `main-0.7` for HDK 0.7.x stability. The full template below matches what `hc scaffold happ` generates — it includes `bun`, `nodejs_24`, and `binaryen` which are needed for the JS test suite and WASM optimisation:
 
 ```nix
 {
   description = "Flake for Holochain app development";
 
   inputs = {
-    holonix.url = "github:holochain/holonix?ref=main-0.6";
+    holonix.url = "github:holochain/holonix?ref=main-0.7";
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
   };
@@ -43,7 +43,7 @@ Pin to `main-0.6` for HDK 0.6.x stability. The full template below matches what 
       devShells.default = pkgs.mkShell {
         inputsFrom = [ inputs'.holonix.devShells.default ];
         packages = (with pkgs; [
-          nodejs_22
+          nodejs_24
           binaryen
           bun
         ]);
@@ -62,7 +62,7 @@ nix develop
 # hc, cargo, rustc, bun, and all Holochain tooling are now available
 ```
 
-**Why pin the branch?** Holonix `main` tracks the latest dev version. `main-0.6` pins all tooling to HDK 0.6.x compatibility. Mixing versions causes compilation failures.
+**Why pin the branch?** Holonix `main` now tracks the 0.8 dev line. `main-0.7` pins all tooling to HDK 0.7.x compatibility. Mixing versions causes compilation failures.
 
 ---
 
@@ -103,7 +103,7 @@ hc scaffold zome
 # Add an entry type to an existing zome pair
 hc scaffold entry-type MyEntry
 # Generates: entry struct in integrity, create/get/update/delete stubs in coordinator
-# Also generates a basic Tryorama test file (deprecated — write Sweettest tests in your tests crate instead)
+# Also generates a Sweettest test in the DNA's tests crate
 ```
 
 ### Link Type
@@ -170,7 +170,7 @@ my-happ/
 │                   └── src/
 │                       ├── lib.rs        # init(), Signal enum, post_commit, signal_action
 │                       └── my_entry.rs   # create/get/update/delete + revision history
-├── tests/                        # Tryorama scaffold (deprecated — use Sweettest)
+├── tests/                        # Sweettest suite (Rust)
 │   ├── package.json
 │   ├── vitest.config.ts
 │   ├── tsconfig.json
@@ -198,8 +198,8 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "=0.7.1"
-hdk = "=0.6.1"
+hdi = "=0.8.0"
+hdk = "=0.7.0"
 holochain_serialized_bytes = "*"
 serde = "1.0"
 
@@ -259,7 +259,7 @@ Proceed to `Workflows/ImplementZome.md` to fill in the implementation.
 |---------|-------|-----|
 | `nix: command not found` | Nix not installed or not in PATH | Restart shell after install; check `~/.nix-profile/bin` in PATH |
 | `flakes not enabled` | Missing experimental-features config | Add `experimental-features = nix-command flakes` to `~/.config/nix/nix.conf` |
-| `hc: command not found` inside nix develop | Wrong holonix branch | Check `flake.nix` ref — must be `main-0.6`, not `main` |
+| `hc: command not found` inside nix develop | Wrong holonix branch | Check `flake.nix` ref — must be `main-0.7`, not `main` |
 | `wasm32 target not found` | Rust toolchain outside Nix | Use `nix develop`; don't use system Rust for Holochain builds |
 | First build hangs at `wasm-opt` | wasm-opt is slow on first run | Normal — wait 5-10 min; subsequent builds are fast |
 

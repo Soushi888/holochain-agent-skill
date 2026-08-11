@@ -202,14 +202,41 @@ fi
 
 check_absent() {
     # check_absent <label> <pattern> <explanation>
+    # CHANGELOG.md is excluded: it is a historical record and correctly quotes
+    # the pins and APIs of past releases.
     # NOTE: no `--` before the pattern. It terminates option parsing, which
     # would turn every --exclude-dir that follows into a file argument.
     hits=$(grep -rn --include='*.md' --include='*.nix' --include='*.toml' \
         --include='*.json' --include='*.yaml' --include='*.yml' \
         --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
         --exclude-dir=.local --exclude-dir=.git --exclude-dir=node_modules \
-        --exclude-dir=assets \
+        --exclude-dir=assets --exclude=CHANGELOG.md \
         "$2" . 2>/dev/null)
+    if [ -n "$hits" ]; then
+        printf 'FAIL  [%s] %s\n' "$1" "$3"
+        printf '%s\n' "$hits" | sed 's/^/        /'
+        FAILURES=$((FAILURES + 1))
+    else
+        pass "$1" "$3"
+    fi
+}
+
+# Corpus of fenced code-block lines only. A removed API named in prose is
+# correct documentation ("signal_url was removed in 0.7"); the same name inside
+# a code fence is an instruction someone will copy. Only the latter is a defect.
+CODE_LINES="$TMPDIR_/code_lines"
+: > "$CODE_LINES"
+while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    awk -v file="$f" '
+        /^[[:space:]]*```/ { infence = !infence; next }
+        { if (infence) printf "%s:%d:%s\n", file, NR, $0 }
+    ' "$f" >> "$CODE_LINES"
+done < "$ALL_MD"
+
+check_absent_in_code() {
+    # check_absent_in_code <label> <pattern> <explanation>
+    hits=$(grep -n "$2" "$CODE_LINES" 2>/dev/null | sed 's/^[0-9]*://')
     if [ -n "$hits" ]; then
         printf 'FAIL  [%s] %s\n' "$1" "$3"
         printf '%s\n' "$hits" | sed 's/^/        /'
@@ -232,26 +259,26 @@ check_absent pins '@holochain/client": "\^0\.20' 'no superseded @holochain/clien
 # ---------------------------------------------------------------------------
 section "Holochain 0.7 forbidden APIs"
 
-check_absent api07 'EntryCreationAction'      'EntryCreationAction (0.7: TypedAction<EntryCreationData>)'
-check_absent api07 'FlatOp::StoreEntry'       'FlatOp::StoreEntry (0.7: FlatOp::CreateEntry)'
-check_absent api07 'FlatOp::StoreRecord'      'FlatOp::StoreRecord (0.7: FlatOp::CreateRecord)'
-check_absent api07 'RegisterUpdate'           'FlatOp::RegisterUpdate (0.7: FlatOp::Update)'
-check_absent api07 'RegisterDelete'           'FlatOp::RegisterDelete (0.7: FlatOp::Delete)'
-check_absent api07 'RegisterCreateLink'       'FlatOp::RegisterCreateLink (0.7: FlatOp::Link)'
-check_absent api07 'RegisterDeleteLink'       'FlatOp::RegisterDeleteLink (0.7: FlatOp::Link)'
-check_absent api07 'RegisterAgentActivity'    'FlatOp::RegisterAgentActivity (0.7: FlatOp::AgentActivity)'
-check_absent api07 'NewEntryAction'           'NewEntryAction (removed in 0.7)'
-check_absent api07 'block_agent'              'block_agent (removed in 0.7)'
-check_absent api07 'unblock_agent'            'unblock_agent (removed in 0.7)'
-check_absent api07 'AppAgentWebsocket'        'AppAgentWebsocket (merged into AppWebsocket)'
-check_absent api07 'sqlite-encrypted'         'sqlite-encrypted feature (0.7: encryption)'
-check_absent api07 'wasmer_sys'               'wasmer_sys feature (0.7: wasmer-sys-cranelift)'
-check_absent api07 'transport-iroh'           'transport-iroh feature (removed; iroh is unconditional)'
-check_absent api07 'signal_url'               'signal_url conductor config (removed with tx5)'
-check_absent api07 'webrtc_config'            'webrtc_config conductor config (removed with tx5)'
-check_absent api07 'db_sync_strategy'         'db_sync_strategy (0.7: db_sync_level)'
-check_absent api07 'chc_url'                  'chc_url conductor config (removed in 0.7)'
-check_absent api07 'ActionBuilderCommon'      'ActionBuilderCommon (removed in 0.7)'
+check_absent_in_code api07 'EntryCreationAction'      'EntryCreationAction (0.7: TypedAction<EntryCreationData>)'
+check_absent_in_code api07 'FlatOp::StoreEntry'       'FlatOp::StoreEntry (0.7: FlatOp::CreateEntry)'
+check_absent_in_code api07 'FlatOp::StoreRecord'      'FlatOp::StoreRecord (0.7: FlatOp::CreateRecord)'
+check_absent_in_code api07 'RegisterUpdate'           'FlatOp::RegisterUpdate (0.7: FlatOp::Update)'
+check_absent_in_code api07 'RegisterDelete'           'FlatOp::RegisterDelete (0.7: FlatOp::Delete)'
+check_absent_in_code api07 'RegisterCreateLink'       'FlatOp::RegisterCreateLink (0.7: FlatOp::Link)'
+check_absent_in_code api07 'RegisterDeleteLink'       'FlatOp::RegisterDeleteLink (0.7: FlatOp::Link)'
+check_absent_in_code api07 'RegisterAgentActivity'    'FlatOp::RegisterAgentActivity (0.7: FlatOp::AgentActivity)'
+check_absent_in_code api07 'NewEntryAction'           'NewEntryAction (removed in 0.7)'
+check_absent_in_code api07 'block_agent'              'block_agent (removed in 0.7)'
+check_absent_in_code api07 'unblock_agent'            'unblock_agent (removed in 0.7)'
+check_absent_in_code api07 'AppAgentWebsocket'        'AppAgentWebsocket (merged into AppWebsocket)'
+check_absent_in_code api07 'sqlite-encrypted'         'sqlite-encrypted feature (0.7: encryption)'
+check_absent_in_code api07 'wasmer_sys'               'wasmer_sys feature (0.7: wasmer-sys-cranelift)'
+check_absent_in_code api07 'transport-iroh'           'transport-iroh feature (removed; iroh is unconditional)'
+check_absent_in_code api07 'signal_url'               'signal_url conductor config (removed with tx5)'
+check_absent_in_code api07 'webrtc_config'            'webrtc_config conductor config (removed with tx5)'
+check_absent_in_code api07 'db_sync_strategy'         'db_sync_strategy (0.7: db_sync_level)'
+check_absent_in_code api07 'chc_url'                  'chc_url conductor config (removed in 0.7)'
+check_absent_in_code api07 'ActionBuilderCommon'      'ActionBuilderCommon (removed in 0.7)'
 
 # ---------------------------------------------------------------------------
 # 7. Tryorama: retired in favour of Sweettest

@@ -3,7 +3,7 @@
 ## Package Versions
 
 ```
-@holochain/client   ^0.20.x   (compatible with hdk 0.6.x / hdi 0.7.x)
+@holochain/client   ^0.21.0   (compatible with hdk 0.6.x / hdi 0.7.x)
 ```
 
 ---
