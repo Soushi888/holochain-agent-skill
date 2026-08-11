@@ -11,3 +11,6 @@ MEMORY/
 
 # mdBook output
 book/
+
+# PAI worktrees
+.worktrees/

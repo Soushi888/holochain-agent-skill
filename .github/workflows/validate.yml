@@ -1,0 +1,37 @@
+name: Validate Skill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Structure, routing and version currency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run skill validator
+        run: ./scripts/validate-skill.sh -v
+
+  build-docs:
+    name: mdBook builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: "latest"
+
+      - name: Install mdBook preprocessors
+        run: cargo install mdbook-frontmatter-strip
+
+      - name: Build documentation
+        run: mdbook build
