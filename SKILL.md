@@ -3,11 +3,12 @@ name: holochain
 description: >
   Holochain hApp development assistant covering coordinator/integrity zome
   architecture, Rust HDK/HDI patterns, entry/link types, CRUD, validation,
-  cross-zome calls, Sweettest testing, TypeScript client integration, and
-  Nix dev environments. USE WHEN writing zome code, designing DHT data models,
+  cross-zome calls, Sweettest testing, TypeScript client integration, DNA
+  migration and init properties, and Nix dev environments. USE WHEN writing zome code, designing DHT data models,
   scaffolding a new project, testing hApps, debugging HDK issues, implementing
   entry types or links, cap grants, access control, cell cloning, deploying
-  or packaging hApps, or working on any Holochain project.
+  or packaging hApps, upgrading a hApp to Holochain 0.7, migrating DNA data,
+  troubleshooting a Holochain error, or working on any Holochain project.
 license: Apache-2.0
 compatibility: >
   Requires Nix dev environment (holonix ref=main-0.7). Rust toolchain managed
@@ -15,7 +16,7 @@ compatibility: >
   hc scaffold and nix flake updates.
 metadata:
   author: soushi888
-  version: "0.2.0"
+  version: "1.0.0"
   holochain-versions: "hdk=0.7.0, hdi=0.8.0, holonix ref=main-0.7"
 ---
 
@@ -47,6 +48,7 @@ When proactively invoked: load `references/architecture.md` + `references/patter
 | **ManualScaffold** | create project files, scaffold without CLI, manual scaffold, AI creates files, no hc scaffold, scaffold in session | `references/workflows/manual-scaffold.md` |
 | **ImplementZome** | implement zome, create zome, scaffold zome, write zome | `references/workflows/implement-zome.md` |
 | **DesignAccessControl** | design access control, who can call, cap grant design | `references/workflows/design-access-control.md` |
+| **UpgradeHolochain07** | upgrade to 0.7, port from 0.6, migrate hApp, holochain 0.7 upgrade | `references/workflows/upgrade-holochain-0.7.md` |
 | **PackageAndDeploy** | deploy, package, distribute, kangaroo, installer, desktop app, webhapp | `references/workflows/package-and-deploy.md` |
 
 ## Context Files
@@ -65,13 +67,17 @@ Load on demand based on task:
 | `references/testing.md` | Four-layer strategy, Sweettest (Rust-native), E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
 | `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, DHT sync lag measurement, InfluxDB metrics pipeline |
 | `references/client.md` | holochain-client setup, callZome, signals, SvelteKit integration |
+| `references/troubleshooting.md` | **Any literal error string** from the compiler, conductor, `hc` CLI or a test. Check here first when something fails |
+| `references/migration.md` | DNA migration, `init_properties`, `get_init_properties()`, carrying data across DNA versions, why 0.7 is a new network |
 | `references/deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning |
 
 ## Quick Reference
 
 ```
 Versions (current stable):  hdk = "=0.7.0"   hdi = "=0.8.0"   holonix ref=main-0.7
-Dev commands:  nix develop  |  hc s sandbox generate workdir/  |  bun run test
+Client / tooling:           @holochain/client 0.21.0   hc-spin 0.700.0   nodejs_24
+Dev commands:  nix develop  |  hc sandbox clean  |  cargo test
+Build zomes:   RUSTFLAGS='--cfg getrandom_backend="custom"' cargo build --release --target wasm32-unknown-unknown
 Scaffold:      hc scaffold entry-type MyEntry  |  hc scaffold link-type AgentToMyEntry
 ```
 

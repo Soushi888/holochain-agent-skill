@@ -6,6 +6,12 @@
 #
 # Usage: scripts/validate-skill.sh [-v]
 #   -v  verbose: also print each passing check
+#
+# Exemption: a line containing the marker `legacy-ok` is skipped by the
+# superseded-pin, removed-API and Tryorama checks. Upgrade guides and
+# troubleshooting tables have to name the old thing to tell you what to change;
+# that is documentation, not an instruction. Use it sparingly and only where the
+# old name is the subject rather than the recommendation.
 
 set -u
 
@@ -211,7 +217,7 @@ check_absent() {
         --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
         --exclude-dir=.local --exclude-dir=.git --exclude-dir=node_modules \
         --exclude-dir=assets --exclude=CHANGELOG.md \
-        "$2" . 2>/dev/null)
+        "$2" . 2>/dev/null | grep -v 'legacy-ok')
     if [ -n "$hits" ]; then
         printf 'FAIL  [%s] %s\n' "$1" "$3"
         printf '%s\n' "$hits" | sed 's/^/        /'
@@ -236,7 +242,7 @@ done < "$ALL_MD"
 
 check_absent_in_code() {
     # check_absent_in_code <label> <pattern> <explanation>
-    hits=$(grep -n "$2" "$CODE_LINES" 2>/dev/null | sed 's/^[0-9]*://')
+    hits=$(grep -n "$2" "$CODE_LINES" 2>/dev/null | sed 's/^[0-9]*://' | grep -v 'legacy-ok')
     if [ -n "$hits" ]; then
         printf 'FAIL  [%s] %s\n' "$1" "$3"
         printf '%s\n' "$hits" | sed 's/^/        /'
@@ -288,7 +294,7 @@ section "Tryorama retirement"
 
 TRY_HITS=$(grep -rn --include='*.md' -i 'tryorama' . \
     --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
-    --exclude-dir=.local --exclude-dir=.git 2>/dev/null | grep -v '^./CHANGELOG.md:')
+    --exclude-dir=.local --exclude-dir=.git 2>/dev/null | grep -v '^./CHANGELOG.md:' | grep -v 'legacy-ok')
 TRY_COUNT=$(printf '%s' "$TRY_HITS" | grep -c . || true)
 if [ "$TRY_COUNT" -gt 1 ]; then
     fail tryorama "$TRY_COUNT Tryorama mentions; at most 1 community-fork pointer is allowed"

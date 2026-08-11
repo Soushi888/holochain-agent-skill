@@ -2,6 +2,12 @@
 
 The progenitor is a single agent whose public key is burned into the DNA at install time via DNA `modifiers.properties`. Every peer in the network can read the progenitor's identity deterministically, making admin authority immutable and cryptographically verifiable without a centralized registry.
 
+> **Do not use `init_properties` for this.** Holochain 0.7 added an `InitProperties` type set on `RoleSettings::Provisioned` and read with `get_init_properties()`. It looks like a natural fit and is not one. Those bytes are **conductor-local**: opaque to the conductor, never written to the DHT, readable only from the `init` callback, and cleared once init succeeds or the app is uninstalled.
+>
+> The progenitor pattern needs the opposite properties. Integrity validation runs on **every peer**, deterministically, against data that must be identical network-wide. A validating peer cannot see another agent's init properties, so a check written against them would pass for the author and fail, or fail to be checkable, for everyone else.
+>
+> `modifiers.properties` is part of the DNA hash and therefore agreed by every member of the network. That is what makes it safe to validate against. Init properties are for seeding a freshly migrated chain with per-install state; see `migration.md`.
+
 Two reference implementations inform this page:
 - **Requests & Offers** (`happenings-community/requests-and-offers`) — coordinator-only enforcement, auto-registration via the first `create_user` call
 - **Moss** (`lightningrodlabs/moss`) — opt-in at group creation, integrity-level enforcement in `validate()`, progenitor key transported via invite-link
