@@ -22,6 +22,7 @@ Entries marked **(verified)** were reproduced on Holochain 0.7.0 while building 
 | `feature transport-iroh does not exist` | Removed; iroh is compiled in unconditionally | Drop it from the feature list |
 | Build fails looking for `perl` | A holochain build dependency needs it on PATH, usually surfacing only when building a Sweettest suite | Add `perl` to the `packages` list in `flake.nix` |
 | `non-exhaustive patterns: AdminRequest::DumpOpTimings { .. } not covered`, raised **inside the `holochain` crate itself** **(verified)** | Version skew: the `holochain` crate is pinned to a `0.7.0-rc` while `holochain_conductor_api` resolves to stable `0.7.0`, which added the `DumpOpTimings` variant the rc does not handle. `hc scaffold` 0.700.0-rc emits exactly this combination | Pin `holochain` to stable `0.7.0` in `[workspace.dependencies]`, then `cargo update -p holochain`. Never leave the scaffolder's rc pins in place |
+| `no method named agent found for &OpActivity<..>`, or `missing field agent` on `OpActivity::CreateAgent` **(verified)** | **Scaffolder output does not compile against stable 0.7.0.** `hc scaffold` 0.700.0-rc generates `ref create @ OpActivity::CreateAgent { ref action }` plus `create.agent()`, which matches the rc crates. Stable hdi 0.8.0 carries `agent` as a plain field, as the official upgrade guide documents | Match the field directly: `OpActivity::CreateAgent { agent, action } => { ... }` and drop the `create.agent()` block. `assets/templates/integrity-lib.rs` is already corrected |
 
 ---
 

@@ -322,21 +322,13 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             }
         }
         FlatOp::AgentActivity(agent_activity) => match agent_activity {
-            ref create @ OpActivity::CreateAgent { ref action } => {
+            OpActivity::CreateAgent { agent, action } => {
                 let prev = action
                     .prev_action()
                     .ok_or_else(|| {
                         wasm_error!(WasmErrorInner::Guest("expected a prior action".into()))
                     })?
                     .clone();
-                let agent = match create.agent() {
-                    Some(agent) => agent,
-                    None => {
-                        return Err(wasm_error!(WasmErrorInner::Guest(
-                            "expected an agent key as the create data".into()
-                        )));
-                    }
-                };
                 let previous_action = must_get_action(prev)?;
                 match &previous_action.action().data {
                         ActionData::AgentValidationPkg(
