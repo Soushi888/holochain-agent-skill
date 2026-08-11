@@ -73,4 +73,4 @@ Once both the PAI version and vanilla version are field-tested:
 | 0.1.0 | 2026-03-12 | Initial vanilla skill — 6 domains, 5 workflows, requirements spec |
 | 0.1.1 | 2026-03-12 | Agent Skills Open Standard conformance, multi-platform README, testing plan |
 | 0.1.2 | 2026-05-15 | Version bump to Holochain 0.6.1 (hdk=0.7.0, hdi=0.8.0); references/wind-tunnel.md shipped ahead of schedule |
-| 0.2.0 | 2026-05-15 | Expanded progenitor pattern: full DnaProperties setup, bootstrap mode (Option<AgentPubKey>), integrity validation enforcement, is_progenitor hdk_extern, init() bootstrap, deploy-time injection via Kangaroo roles_settings; based on Requests & Offers implementation |
+| 0.2.0 | 2026-05-15 | Expanded progenitor pattern: full DnaProperties setup, bootstrap mode (`Option<AgentPubKey>`), integrity validation enforcement, is_progenitor hdk_extern, init() bootstrap, deploy-time injection via Kangaroo roles_settings; based on Requests & Offers implementation |
