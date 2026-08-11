@@ -1,0 +1,7 @@
+---
+manifest_version: "0"
+name: <APP_NAME>
+ui:
+  path: ~
+happ:
+  path: "./<APP_NAME>.happ"

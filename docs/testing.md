@@ -42,20 +42,20 @@ ls *.md
 
 | # | File | Exists? |
 |---|------|---------|
-| T2.1 | `Workflows/DesignDataModel.md` | ☐ |
-| T2.2 | `Workflows/Scaffold.md` | ☐ |
-| T2.3 | `Workflows/ImplementZome.md` | ☐ |
-| T2.4 | `Workflows/DesignAccessControl.md` | ☐ |
-| T2.5 | `Workflows/PackageAndDeploy.md` | ☐ |
-| T2.6 | `Architecture.md` | ☐ |
-| T2.7 | `Scaffold.md` | ☐ |
-| T2.8 | `Patterns.md` | ☐ |
-| T2.9 | `AccessControl.md` | ☐ |
-| T2.10 | `CellCloning.md` | ☐ |
-| T2.11 | `ErrorHandling.md` | ☐ |
-| T2.12 | `Testing.md` | ☐ |
-| T2.13 | `TypeScript.md` | ☐ |
-| T2.14 | `Deployment.md` | ☐ |
+| T2.1 | `references/workflows/design-data-model.md` | ☐ |
+| T2.2 | `references/workflows/scaffold.md` | ☐ |
+| T2.3 | `references/workflows/implement-zome.md` | ☐ |
+| T2.4 | `references/workflows/design-access-control.md` | ☐ |
+| T2.5 | `references/workflows/package-and-deploy.md` | ☐ |
+| T2.6 | `references/architecture.md` | ☐ |
+| T2.7 | `references/scaffolding.md` | ☐ |
+| T2.8 | `references/patterns.md` | ☐ |
+| T2.9 | `references/access-control.md` | ☐ |
+| T2.10 | `references/cell-cloning.md` | ☐ |
+| T2.11 | `references/error-handling.md` | ☐ |
+| T2.12 | `references/testing.md` | ☐ |
+| T2.13 | `references/client.md` | ☐ |
+| T2.14 | `references/deployment.md` | ☐ |
 | T2.15 | `LICENSE` at repo root | ☐ |
 | T2.16 | `README.md` at repo root | ☐ |
 
@@ -67,25 +67,25 @@ For each Workflow Routing entry in `SKILL.md`, verify the trigger resolves to th
 
 | # | Trigger phrase | Expected file | Content check |
 |---|----------------|---------------|---------------|
-| T3.1 | "design data model" | `Workflows/DesignDataModel.md` | Contains Step 1 (domains/zome pairs) and Step 2 (entry type definition) |
-| T3.2 | "new happ" | `Workflows/Scaffold.md` | Contains Nix install and `hc scaffold happ` commands |
-| T3.3 | "implement zome" | `Workflows/ImplementZome.md` | Contains `hc scaffold entry-type` and integrity/coordinator structure |
-| T3.4 | "who can call" | `Workflows/DesignAccessControl.md` | Contains `CapAccess::Unrestricted`, `CapAccess::Assigned` |
-| T3.5 | "package" | `Workflows/PackageAndDeploy.md` | Contains Kangaroo-Electron setup steps |
+| T3.1 | "design data model" | `references/workflows/design-data-model.md` | Contains Step 1 (domains/zome pairs) and Step 2 (entry type definition) |
+| T3.2 | "new happ" | `references/workflows/scaffold.md` | Contains Nix install and `hc scaffold happ` commands |
+| T3.3 | "implement zome" | `references/workflows/implement-zome.md` | Contains `hc scaffold entry-type` and integrity/coordinator structure |
+| T3.4 | "who can call" | `references/workflows/design-access-control.md` | Contains `CapAccess::Unrestricted`, `CapAccess::Assigned` |
+| T3.5 | "package" | `references/workflows/package-and-deploy.md` | Contains Kangaroo-Electron setup steps |
 
 For each Context Files entry in `SKILL.md`:
 
 | # | Load-when trigger | Expected file | Content check |
 |---|-------------------|---------------|---------------|
-| T3.6 | coordinator/integrity split | `Architecture.md` | Contains `hdi` and `hdk` crate explanation |
-| T3.7 | Nix flake setup | `Scaffold.md` | Contains `nix develop` and `flake.nix` |
-| T3.8 | entry types, CRUD | `Patterns.md` | Contains `#[hdk_entry_helper]` and `create_entry()` |
-| T3.9 | cap grants | `AccessControl.md` | Contains `CapAccess::Unrestricted` and `init()` |
-| T3.10 | cell cloning | `CellCloning.md` | Contains `createCloneCell` and `clone_limit` |
-| T3.11 | WasmError | `ErrorHandling.md` | Contains `WasmError` and `ExternResult` |
-| T3.12 | Sweettest tests | `Testing.md` | Contains `await_consistency` and two-agent scenario |
-| T3.13 | holochain-client | `TypeScript.md` | Contains `callZome` and signal handling |
-| T3.14 | packaging, Kangaroo | `Deployment.md` | Contains `.webhapp` and versioning guidance |
+| T3.6 | coordinator/integrity split | `references/architecture.md` | Contains `hdi` and `hdk` crate explanation |
+| T3.7 | Nix flake setup | `references/scaffolding.md` | Contains `nix develop` and `flake.nix` |
+| T3.8 | entry types, CRUD | `references/patterns.md` | Contains `#[hdk_entry_helper]` and `create_entry()` |
+| T3.9 | cap grants | `references/access-control.md` | Contains `CapAccess::Unrestricted` and `init()` |
+| T3.10 | cell cloning | `references/cell-cloning.md` | Contains `createCloneCell` and `clone_limit` |
+| T3.11 | WasmError | `references/error-handling.md` | Contains `WasmError` and `ExternResult` |
+| T3.12 | Sweettest tests | `references/testing.md` | Contains `await_consistency` and two-agent scenario |
+| T3.13 | holochain-client | `references/client.md` | Contains `callZome` and signal handling |
+| T3.14 | packaging, Kangaroo | `references/deployment.md` | Contains `.webhapp` and versioning guidance |
 
 ---
 
@@ -95,12 +95,12 @@ Verify each of the 6 skill domains has substantive (non-stub) content.
 
 | # | Domain | Primary file | Pass condition |
 |---|--------|--------------|----------------|
-| T4.1 | Architecture | `Architecture.md` | > 100 lines, covers integrity/coordinator split |
-| T4.2 | Design | `Workflows/DesignDataModel.md` | Has at least 4 numbered steps with examples |
-| T4.3 | Scaffold | `Scaffold.md` + `Workflows/Scaffold.md` | Contains `nix develop`, `hc scaffold happ`, Nix flake template |
-| T4.4 | Implement | `Patterns.md` | Contains CRUD patterns, link types, validation section |
-| T4.5 | Test | `Testing.md` | Contains Sweettest setup, `await_consistency`, two-agent example |
-| T4.6 | Deploy | `Deployment.md` + `Workflows/PackageAndDeploy.md` | Contains `kangaroo-electron`, `.webhapp` bundling, versioning |
+| T4.1 | Architecture | `references/architecture.md` | > 100 lines, covers integrity/coordinator split |
+| T4.2 | Design | `references/workflows/design-data-model.md` | Has at least 4 numbered steps with examples |
+| T4.3 | Scaffold | `references/scaffolding.md` + `references/workflows/scaffold.md` | Contains `nix develop`, `hc scaffold happ`, Nix flake template |
+| T4.4 | Implement | `references/patterns.md` | Contains CRUD patterns, link types, validation section |
+| T4.5 | Test | `references/testing.md` | Contains Sweettest setup, `await_consistency`, two-agent example |
+| T4.6 | Deploy | `references/deployment.md` + `references/workflows/package-and-deploy.md` | Contains `kangaroo-electron`, `.webhapp` bundling, versioning |
 
 ---
 
@@ -112,18 +112,18 @@ Validate specific API calls against the actual HDK 0.7 API (use the hAppenings o
 
 | # | Example to validate | Expected form | File |
 |---|---------------------|---------------|------|
-| T5.1 | Entry type macro | `#[hdk_entry_helper]` on struct | `Patterns.md` |
-| T5.2 | Entry type enum in integrity | `#[hdk_entry_types]` on enum with `#[unit_enum(UnitEntryTypes)]` | `Patterns.md` |
-| T5.3 | Create entry | `create_entry(EntryTypes::MyEntry(entry))` | `Patterns.md` |
-| T5.4 | Get entry | `get(hash, GetOptions::default())` or `must_get_entry(hash)` | `Patterns.md` |
-| T5.5 | Delete link | `delete_link(link_hash, GetOptions::default())` (second arg required in 0.6) | `Patterns.md` |
-| T5.6 | Link types enum | `#[hdk_link_types]` on enum | `Patterns.md` |
-| T5.7 | Update chain tracking | `create_link(original_hash, new_hash, LinkTypes::EntryUpdates, ())` | `Patterns.md` |
-| T5.8 | Validation signature | `pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult>` | `Patterns.md` |
-| T5.9 | `post_commit` infallible | `#[hdk_extern(infallible)]` + `pub fn post_commit(...)` | `Architecture.md` or `Patterns.md` |
-| T5.10 | Remote signal cap grant | `CapAccess::Unrestricted` grant created in `init()` | `AccessControl.md` |
-| T5.11 | consistency call | `await_consistency(&[&alice_cell, &bob_cell])` | `Testing.md` |
-| T5.12 | Scaffold compile check | `hc s sandbox generate workdir/` | `Workflows/ImplementZome.md` |
+| T5.1 | Entry type macro | `#[hdk_entry_helper]` on struct | `references/patterns.md` |
+| T5.2 | Entry type enum in integrity | `#[hdk_entry_types]` on enum with `#[unit_enum(UnitEntryTypes)]` | `references/patterns.md` |
+| T5.3 | Create entry | `create_entry(EntryTypes::MyEntry(entry))` | `references/patterns.md` |
+| T5.4 | Get entry | `get(hash, GetOptions::default())` or `must_get_entry(hash)` | `references/patterns.md` |
+| T5.5 | Delete link | `delete_link(link_hash, GetOptions::default())` (second arg required in 0.6) | `references/patterns.md` |
+| T5.6 | Link types enum | `#[hdk_link_types]` on enum | `references/patterns.md` |
+| T5.7 | Update chain tracking | `create_link(original_hash, new_hash, LinkTypes::EntryUpdates, ())` | `references/patterns.md` |
+| T5.8 | Validation signature | `pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult>` | `references/patterns.md` |
+| T5.9 | `post_commit` infallible | `#[hdk_extern(infallible)]` + `pub fn post_commit(...)` | `references/architecture.md` or `references/patterns.md` |
+| T5.10 | Remote signal cap grant | `CapAccess::Unrestricted` grant created in `init()` | `references/access-control.md` |
+| T5.11 | consistency call | `await_consistency(&[&alice_cell, &bob_cell])` | `references/testing.md` |
+| T5.12 | Scaffold compile check | `hc s sandbox generate workdir/` | `references/workflows/implement-zome.md` |
 
 ### Version pin consistency `[auto]`
 
@@ -137,7 +137,7 @@ grep -rn "holonix" . --include="*.md" | grep -v Plans/
 |---|-------|----------------|----------------|
 | T5.13 | `hdk` pin in SKILL.md Quick Reference | `"=0.7.0"` | All occurrences match |
 | T5.14 | `hdi` pin in SKILL.md Quick Reference | `"=0.8.0"` | All occurrences match |
-| T5.15 | `holonix ref` in SKILL.md and Scaffold.md | `main-0.7` | All occurrences match |
+| T5.15 | `holonix ref` in SKILL.md and references/scaffolding.md | `main-0.7` | All occurrences match |
 | T5.16 | No file references `hdk = "0.6.*"` or older | — | Zero matches |
 | T5.17 | PackageAndDeploy.md Cargo.toml example pins match current | `hdk = "=0.7.0"` | Matches T5.13 |
 
@@ -160,7 +160,7 @@ cp -r holochain-agent-skill ~/.claude/skills/holochain
 | T6.1 | Directory created | `~/.claude/skills/holochain/` exists |
 | T6.2 | `SKILL.md` present inside | `~/.claude/skills/holochain/SKILL.md` exists |
 | T6.3 | `Workflows/` subdirectory present | `~/.claude/skills/holochain/Workflows/` exists with 5 files |
-| T6.4 | All context files present | `Architecture.md`, `Patterns.md`, etc. all copied |
+| T6.4 | All context files present | `references/architecture.md`, `references/patterns.md`, etc. all copied |
 
 ### Option B — Project-local
 
@@ -197,9 +197,9 @@ Verify the skill loads and responds correctly in Claude Code.
 | # | Test | Steps | Pass condition |
 |---|------|-------|----------------|
 | T7.1 | Explicit command invocation | Type `/holochain` in Claude Code | Skill loads, greets with Holochain context |
-| T7.2 | Natural language trigger — workflow | Type "implement zome for Profile entry type" | `Workflows/ImplementZome.md` guidance appears |
-| T7.3 | Natural language trigger — context file | Type "how do I set up a Sweettest test?" | `Testing.md` content cited |
-| T7.4 | Natural language trigger — scaffold | Type "scaffold a new happ called my-network" | `Workflows/Scaffold.md` steps appear |
+| T7.2 | Natural language trigger — workflow | Type "implement zome for Profile entry type" | `references/workflows/implement-zome.md` guidance appears |
+| T7.3 | Natural language trigger — context file | Type "how do I set up a Sweettest test?" | `references/testing.md` content cited |
+| T7.4 | Natural language trigger — scaffold | Type "scaffold a new happ called my-network" | `references/workflows/scaffold.md` steps appear |
 | T7.5 | Version question | Ask "what version of hdk does this skill target?" | Responds with `0.7.0` |
 | T7.6 | Out-of-scope question | Ask a non-Holochain question | Skill does not answer as if it's Holochain-related |
 

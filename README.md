@@ -132,15 +132,15 @@ Contributions welcome. The skill follows this structure:
 
 ```
 SKILL.md              Entry point — routing table and quick reference
-Architecture.md       Core concepts: zome split, DNA, Nix, progenitor
-Patterns.md           Implementation patterns: entry types, links, CRUD, signals
-Scaffold.md           Dev environment and project scaffolding
-AccessControl.md      Capability grants system
-CellCloning.md        Partitioned data via clone cells
-ErrorHandling.md      thiserror + WasmError patterns
-Testing.md            Sweettest patterns
-TypeScript.md         holochain-client, signals, Svelte integration
-Deployment.md         Kangaroo-Electron packaging and distribution
+references/architecture.md       Core concepts: zome split, DNA, Nix, progenitor
+references/patterns.md           Implementation patterns: entry types, links, CRUD, signals
+references/scaffolding.md           Dev environment and project scaffolding
+references/access-control.md      Capability grants system
+references/cell-cloning.md        Partitioned data via clone cells
+references/error-handling.md      thiserror + WasmError patterns
+references/testing.md            Sweettest patterns
+references/client.md         holochain-client, signals, Svelte integration
+references/deployment.md         Kangaroo-Electron packaging and distribution
 Workflows/            Step-by-step guided workflows
 docs/                 Requirements, roadmap, and design decisions
 ```

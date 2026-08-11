@@ -16,17 +16,17 @@ A vanilla agent skill for Holochain hApp development. It is a documentation-only
 
 ```
 SKILL.md              Entry point — routing table, context file index, quick reference
-Architecture.md       Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
-Progenitor.md         DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement (Moss), bootstrap auto-registration, deploy-time injection
-Patterns.md           Entry types, link types, CRUD patterns, update chain, validation, signals, HDK 0.6 API
-Scaffold.md           Holonix setup, Nix flake, hc CLI commands, project scaffolding
-AccessControl.md      Capability grants, cap claims, admin-only patterns, init() setup
-CellCloning.md        Clone cells, partitioned data, createCloneCell, clone_limit
-ErrorHandling.md      thiserror enums, WasmError, ExternResult patterns
-Testing.md            Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, inline zomes, test organization
-WindTunnel.md         Performance/load testing with wind-tunnel framework
-TypeScript.md         holochain-client setup, callZome, signals, SvelteKit integration
-Deployment.md         Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
+references/architecture.md       Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
+references/progenitor.md         DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement (Moss), bootstrap auto-registration, deploy-time injection
+references/patterns.md           Entry types, link types, CRUD patterns, update chain, validation, signals, HDK 0.6 API
+references/scaffolding.md           Holonix setup, Nix flake, hc CLI commands, project scaffolding
+references/access-control.md      Capability grants, cap claims, admin-only patterns, init() setup
+references/cell-cloning.md        Clone cells, partitioned data, createCloneCell, clone_limit
+references/error-handling.md      thiserror enums, WasmError, ExternResult patterns
+references/testing.md            Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, inline zomes, test organization
+references/wind-tunnel.md         Performance/load testing with wind-tunnel framework
+references/client.md         holochain-client setup, callZome, signals, SvelteKit integration
+references/deployment.md         Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
 Workflows/            Step-by-step guided workflows (called from SKILL.md routing table)
 docs/                 Requirements spec and roadmap (not loaded by the skill itself)
 README.md             Installation instructions and quick start for humans
@@ -51,14 +51,14 @@ hdi = "=0.8.0"
 holonix ref=main-0.7
 ```
 
-Exact pins (`=`) are required — Holochain is sensitive to minor version changes. When updating version pins, grep all files for the old version string and update every occurrence including `SKILL.md` Quick Reference, `Architecture.md` workspace examples, and any code blocks in context files.
+Exact pins (`=`) are required — Holochain is sensitive to minor version changes. When updating version pins, grep all files for the old version string and update every occurrence including `SKILL.md` Quick Reference, `references/architecture.md` workspace examples, and any code blocks in context files.
 
 ## Maintaining the Skill
 
 - **Code examples must compile** — validate against the hAppenings or Nondominium codebase before committing new examples
-- **HDK 0.6 breaking changes** — `delete_link()` now requires `GetOptions::default()` as second argument; `GetLinksInputBuilder` replaced the old `LinkQuery::new()` in some contexts (see `Patterns.md` for the authoritative API)
+- **HDK 0.6 breaking changes** — `delete_link()` now requires `GetOptions::default()` as second argument; `GetLinksInputBuilder` replaced the old `LinkQuery::new()` in some contexts (see `references/patterns.md` for the authoritative API)
 - **No duplication across files** — each pattern lives in one canonical file; `SKILL.md` routes to it
-- **Workflow files** in `Workflows/` are step-by-step sequences; context files (`Architecture.md`, `Patterns.md`, etc.) are reference material. Keep these roles distinct
+- **Workflow files** in `Workflows/` are step-by-step sequences; context files (`references/architecture.md`, `references/patterns.md`, etc.) are reference material. Keep these roles distinct
 - **docs/ is not part of the skill** — `docs/requirements.md` and `docs/roadmap.md` are project tracking, not loaded by skill routing
 
 ## Key Architectural Concepts (for editing context files accurately)

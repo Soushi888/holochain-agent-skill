@@ -10,30 +10,30 @@
 
 # Core Concepts
 
-- [Architecture](Architecture.md)
-- [Progenitor Pattern](Progenitor.md)
-- [Patterns](Patterns.md)
-- [Access Control](AccessControl.md)
-- [Cell Cloning](CellCloning.md)
-- [Error Handling](ErrorHandling.md)
+- [Architecture](references/architecture.md)
+- [Progenitor Pattern](references/progenitor.md)
+- [Patterns](references/patterns.md)
+- [Access Control](references/access-control.md)
+- [Cell Cloning](references/cell-cloning.md)
+- [Error Handling](references/error-handling.md)
 
 # Development
 
-- [Scaffolding](Scaffold.md)
-- [Testing](Testing.md)
-- [Wind Tunnel](WindTunnel.md)
-- [TypeScript Client](TypeScript.md)
-- [Deployment](Deployment.md)
+- [Scaffolding](references/scaffolding.md)
+- [Testing](references/testing.md)
+- [Wind Tunnel](references/wind-tunnel.md)
+- [TypeScript Client](references/client.md)
+- [Deployment](references/deployment.md)
 
 # Guided Workflows
 
-- [Design Data Model](Workflows/DesignDataModel.md)
-- [Scaffold New Project](Workflows/Scaffold.md)
-- [Manual Scaffold](Workflows/ManualScaffold.md)
-- [Implement Zome](Workflows/ImplementZome.md)
-- [Design Access Control](Workflows/DesignAccessControl.md)
-- [Review Zome](Workflows/ReviewZome.md)
-- [Package & Deploy](Workflows/PackageAndDeploy.md)
+- [Design Data Model](references/workflows/design-data-model.md)
+- [Scaffold New Project](references/workflows/scaffold.md)
+- [Manual Scaffold](references/workflows/manual-scaffold.md)
+- [Implement Zome](references/workflows/implement-zome.md)
+- [Design Access Control](references/workflows/design-access-control.md)
+- [Review Zome](references/workflows/review-zome.md)
+- [Package & Deploy](references/workflows/package-and-deploy.md)
 
 ---
 

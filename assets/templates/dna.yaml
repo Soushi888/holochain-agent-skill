@@ -1,0 +1,17 @@
+manifest_version: '0'
+name: <DNA_NAME>
+integrity:
+  network_seed: null
+  properties: null
+  zomes:
+  - name: <ZOME_NAME>_integrity
+    hash: null
+    path: ../../../target/wasm32-unknown-unknown/release/<ZOME_NAME>_integrity.wasm
+    dependencies: null
+coordinator:
+  zomes:
+  - name: <ZOME_NAME>
+    hash: null
+    path: ../../../target/wasm32-unknown-unknown/release/<ZOME_NAME>.wasm
+    dependencies:
+    - name: <ZOME_NAME>_integrity

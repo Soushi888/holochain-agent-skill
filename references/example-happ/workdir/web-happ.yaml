@@ -1,0 +1,7 @@
+---
+manifest_version: "0"
+name: my_forum
+ui:
+  path: ~
+happ:
+  path: "./my_forum.happ"

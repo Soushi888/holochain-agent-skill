@@ -1,0 +1,19 @@
+[package]
+name = "posts"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "posts"
+
+[dependencies]
+hdk = { workspace = true }
+serde = { workspace = true }
+holochain_serialized_bytes = { workspace = true }
+
+posts_integrity = { workspace = true }
+
+[dev-dependencies]
+holochain = { workspace = true, features = ["wasmer-sys-cranelift", "test_utils"] }
+tokio = { workspace = true }

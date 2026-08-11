@@ -33,7 +33,7 @@ Trigger conditions — any of these means the skill should be loaded before codi
 - Task involves entry types, link types, cross-DNA calls, or zome functions
 - Task involves a PR on a Holochain project
 
-When proactively invoked: load `Architecture.md` + `Patterns.md`, run the **ReviewZome** checklist against any files being modified, surface issues before implementation begins.
+When proactively invoked: load `references/architecture.md` + `references/patterns.md`, run the **ReviewZome** checklist against any files being modified, surface issues before implementation begins.
 
 ---
 
@@ -41,13 +41,13 @@ When proactively invoked: load `Architecture.md` + `Patterns.md`, run the **Revi
 
 | Workflow | Trigger | File |
 |----------|---------|------|
-| **ReviewZome** | review zome, audit zome, check implementation, validate patterns, before implementing, PR review, code review on zome | `Workflows/ReviewZome.md` |
-| **DesignDataModel** | design data model, model entries, what entries, what links, DHT schema | `Workflows/DesignDataModel.md` |
-| **Scaffold** | scaffold, new happ, new project, setup environment, init project, Holonix, nix develop, hc scaffold | `Workflows/Scaffold.md` |
-| **ManualScaffold** | create project files, scaffold without CLI, manual scaffold, AI creates files, no hc scaffold, scaffold in session | `Workflows/ManualScaffold.md` |
-| **ImplementZome** | implement zome, create zome, scaffold zome, write zome | `Workflows/ImplementZome.md` |
-| **DesignAccessControl** | design access control, who can call, cap grant design | `Workflows/DesignAccessControl.md` |
-| **PackageAndDeploy** | deploy, package, distribute, kangaroo, installer, desktop app, webhapp | `Workflows/PackageAndDeploy.md` |
+| **ReviewZome** | review zome, audit zome, check implementation, validate patterns, before implementing, PR review, code review on zome | `references/workflows/review-zome.md` |
+| **DesignDataModel** | design data model, model entries, what entries, what links, DHT schema | `references/workflows/design-data-model.md` |
+| **Scaffold** | scaffold, new happ, new project, setup environment, init project, Holonix, nix develop, hc scaffold | `references/workflows/scaffold.md` |
+| **ManualScaffold** | create project files, scaffold without CLI, manual scaffold, AI creates files, no hc scaffold, scaffold in session | `references/workflows/manual-scaffold.md` |
+| **ImplementZome** | implement zome, create zome, scaffold zome, write zome | `references/workflows/implement-zome.md` |
+| **DesignAccessControl** | design access control, who can call, cap grant design | `references/workflows/design-access-control.md` |
+| **PackageAndDeploy** | deploy, package, distribute, kangaroo, installer, desktop app, webhapp | `references/workflows/package-and-deploy.md` |
 
 ## Context Files
 
@@ -55,17 +55,17 @@ Load on demand based on task:
 
 | File | Load When |
 |------|-----------|
-| `Architecture.md` | Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole) |
-| `Progenitor.md` | Progenitor pattern, DnaProperties struct, check_if_progenitor, bootstrap mode, coordinator guard, integrity enforcement (Moss pattern), auto-registration in create_user, deploy-time injection (dna.yaml / Sweettest / Kangaroo / Moss) |
-| `Scaffold.md` | New project setup, Holonix installation, Nix flake, hc CLI, `hc scaffold` commands, adding a new domain to existing project |
-| `Patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation, HDK 0.6 API (GetStrategy, LinkQuery, Local vs Network), must_get, signals (remote signal, init cap grant) |
-| `AccessControl.md` | Cap grants, capability system, cap claim, recv_remote_signal setup, admin-only access |
-| `CellCloning.md` | Cell cloning, partitioned data, clone roles, createCloneCell, clone_limit |
-| `ErrorHandling.md` | Error types, WasmError, ExternResult patterns, thiserror |
-| `Testing.md` | Four-layer strategy, Sweettest (Rust-native), E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
-| `WindTunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, DHT sync lag measurement, InfluxDB metrics pipeline |
-| `TypeScript.md` | holochain-client setup, callZome, signals, SvelteKit integration |
-| `Deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning |
+| `references/architecture.md` | Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole) |
+| `references/progenitor.md` | Progenitor pattern, DnaProperties struct, check_if_progenitor, bootstrap mode, coordinator guard, integrity enforcement (Moss pattern), auto-registration in create_user, deploy-time injection (dna.yaml / Sweettest / Kangaroo / Moss) |
+| `references/scaffolding.md` | New project setup, Holonix installation, Nix flake, hc CLI, `hc scaffold` commands, adding a new domain to existing project |
+| `references/patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation, HDK 0.6 API (GetStrategy, LinkQuery, Local vs Network), must_get, signals (remote signal, init cap grant) |
+| `references/access-control.md` | Cap grants, capability system, cap claim, recv_remote_signal setup, admin-only access |
+| `references/cell-cloning.md` | Cell cloning, partitioned data, clone roles, createCloneCell, clone_limit |
+| `references/error-handling.md` | Error types, WasmError, ExternResult patterns, thiserror |
+| `references/testing.md` | Four-layer strategy, Sweettest (Rust-native), E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
+| `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, DHT sync lag measurement, InfluxDB metrics pipeline |
+| `references/client.md` | holochain-client setup, callZome, signals, SvelteKit integration |
+| `references/deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning |
 
 ## Quick Reference
 
@@ -94,7 +94,7 @@ Run this against any zome code being written or reviewed. Each item is a class o
 
 ### Validation Rules
 - [ ] **No DHT reads in `validate()`** — `validate()` must be deterministic. No `get()`, `get_links()`, `agent_info()`, `sys_time()`. Only inspect the op itself.
-- [ ] **Use `op.flattened::<EntryTypes, LinkTypes>()`** — Not the old `op.to_type()`. Patterns.md has the correct pattern.
+- [ ] **Use `op.flattened::<EntryTypes, LinkTypes>()`** — Not the old `op.to_type()`. references/patterns.md has the correct pattern.
 
 ### HDK 0.6 API
 - [ ] **`delete_link()` requires `GetOptions`** — `delete_link(hash, GetOptions::default())` not `delete_link(hash)`.
@@ -110,7 +110,7 @@ Run this against any zome code being written or reviewed. Each item is a class o
 **Example 1: Design a new entry type for a marketplace listing**
 ```
 User: "I need to model a Listing entry with status transitions"
-→ Loads Patterns.md (entry types, status enum, link types)
+→ Loads references/patterns.md (entry types, status enum, link types)
 → Designs ListingStatus enum (Active/Archived/Deleted)
 → Defines link types (AgentToListing, PathToListing, ListingUpdates)
 → Implements soft-delete via status field update, not entry deletion
@@ -119,7 +119,7 @@ User: "I need to model a Listing entry with status transitions"
 **Example 2: Debug a cross-agent test that fails intermittently**
 ```
 User: "My Sweettest passes alone but fails when another agent reads the entry"
-→ Loads Testing.md
+→ Loads references/testing.md
 → Identifies missing await_consistency call before cross-agent read
 → Adds await_consistency_60s([&alice, &bob]).await after Alice's create, before Bob's get
 → Test passes reliably
@@ -128,9 +128,9 @@ User: "My Sweettest passes alone but fails when another agent reads the entry"
 **Example 3: Scaffold a new hApp from scratch**
 ```
 User: "Start a new Holochain project for a community coordination app"
-→ Loads Scaffold.md + Workflows/Scaffold.md
+→ Loads references/scaffolding.md + references/workflows/scaffold.md
 → If hc scaffold CLI is available: guides nix flake setup → hc scaffold happ → entry types
-→ If no CLI (AI coding session): invokes Workflows/ManualScaffold.md → writes identical structure
+→ If no CLI (AI coding session): invokes references/workflows/manual-scaffold.md → writes identical structure
 → Both paths produce the same standard hc scaffold architecture
 → Verifies compilation with hc s sandbox generate workdir/
 ```
@@ -138,8 +138,8 @@ User: "Start a new Holochain project for a community coordination app"
 **Example 4: Implement CRUD for a new zome**
 ```
 User: "Implement a full resource zome with create, read, update, delete"
-→ Loads Architecture.md + Patterns.md
-→ Invokes Workflows/ImplementZome.md
+→ Loads references/architecture.md + references/patterns.md
+→ Invokes references/workflows/implement-zome.md
 → Creates integrity crate (entry struct, link enum, validation)
 → Creates coordinator crate (create/read/update/delete functions)
 → Writes Sweettest tests at foundation + integration layers
