@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-A vanilla agent skill for Holochain hApp development. It is a documentation-only repository — no Rust, no TypeScript, no build system. All files are Markdown. The skill is loaded by Claude Code when a user invokes `/holochain` or when Holochain-related work is detected.
+A vanilla agent skill for Holochain hApp development, targeting **Holochain 0.7 only**. It is a documentation repository plus one compiling reference hApp. The skill is loaded by Claude Code when a user invokes `/holochain` or when Holochain-related work is detected.
 
 **Documentation site:** The repo also generates a static documentation site via mdBook (`book.toml` + `SUMMARY.md`). Run `mdbook build` to produce `book/` (gitignored). GitHub Actions deploys it to GitHub Pages on every push to `main`.
 
@@ -12,34 +12,38 @@ A vanilla agent skill for Holochain hApp development. It is a documentation-only
 
 **License:** Apache-2.0
 
-## File Roles
+## Layout
 
 ```
-SKILL.md              Entry point — routing table, context file index, quick reference
-references/architecture.md       Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
-references/progenitor.md         DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement (Moss), bootstrap auto-registration, deploy-time injection
-references/patterns.md           Entry types, link types, CRUD patterns, update chain, validation, signals, HDK 0.6 API
-references/scaffolding.md           Holonix setup, Nix flake, hc CLI commands, project scaffolding
-references/access-control.md      Capability grants, cap claims, admin-only patterns, init() setup
-references/cell-cloning.md        Clone cells, partitioned data, createCloneCell, clone_limit
-references/error-handling.md      thiserror enums, WasmError, ExternResult patterns
-references/testing.md            Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, inline zomes, test organization
-references/wind-tunnel.md         Performance/load testing with wind-tunnel framework
-references/client.md         holochain-client setup, callZome, signals, SvelteKit integration
-references/deployment.md         Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
-Workflows/            Step-by-step guided workflows (called from SKILL.md routing table)
-docs/                 Requirements spec and roadmap (not loaded by the skill itself)
-README.md             Installation instructions and quick start for humans
-SUMMARY.md            mdBook table of contents (do not load as skill context — doc tooling only)
-book.toml             mdBook configuration (doc tooling only)
+SKILL.md                     Entry point: routing table, context file index, quick reference, toolchain currency table
+references/                  Reference material, loaded on demand
+  architecture.md              Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
+  progenitor.md                DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement, bootstrap auto-registration, deploy-time injection
+  patterns.md                  Entry types, link types, CRUD, update chain, validation, signals, HDK 0.7 API
+  scaffolding.md               Holonix setup, Nix flake, hc CLI commands, project scaffolding
+  access-control.md            Capability grants, cap claims, admin-only patterns, init() setup
+  cell-cloning.md              Clone cells, partitioned data, createCloneCell, clone_limit
+  error-handling.md            thiserror enums, WasmError, ExternResult patterns
+  testing.md                   Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, test organization
+  wind-tunnel.md               Performance/load testing with the wind-tunnel framework
+  client.md                    @holochain/client setup, callZome, signals, SvelteKit integration
+  deployment.md                Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
+  migration.md                 DNA migration, init_properties, carrying data across DNA versions
+  troubleshooting.md           Literal error strings mapped to causes and fixes
+  frameworks/                  Effect and Svelte integration notes
+  workflows/                   Step-by-step guided sequences, routed from SKILL.md
+  example-happ/                A real, compiling 0.7 hApp. The ground truth for every code example
+assets/templates/            Real template files (flake.nix, Cargo.toml, happ.yaml, dna.yaml, zome lib.rs, sweettest harness)
+scripts/                     validate-skill.sh (CI gate), bump-versions.sh
+docs/                        Requirements spec, roadmap, testing matrix. NOT loaded by the skill
 ```
 
 ## Routing Architecture
 
 `SKILL.md` is the entry point. It contains:
-1. A **Workflow Routing** table mapping natural-language triggers to `Workflows/*.md` files
-2. A **Context Files** table specifying which `*.md` file to load per topic
-3. **Quick Reference** — version pins and common commands
+1. A **Workflow Routing** table mapping natural-language triggers to `references/workflows/*.md` files
+2. A **Context Files** table specifying which `references/*.md` file to load per topic
+3. **Quick Reference** and a dated **Toolchain currency** table
 
 Context files are loaded **on demand**, not all at once. When editing `SKILL.md`, maintain this lazy-loading discipline.
 
@@ -49,23 +53,30 @@ Context files are loaded **on demand**, not all at once. When editing `SKILL.md`
 hdk = "=0.7.0"
 hdi = "=0.8.0"
 holonix ref=main-0.7
+@holochain/client 0.21.0
+@holochain/hc-spin 0.700.0
+nodejs_24
 ```
 
-Exact pins (`=`) are required — Holochain is sensitive to minor version changes. When updating version pins, grep all files for the old version string and update every occurrence including `SKILL.md` Quick Reference, `references/architecture.md` workspace examples, and any code blocks in context files.
+Exact pins (`=`) are required. Holochain is sensitive to minor version changes. Use `scripts/bump-versions.sh` rather than hand-editing, then run `scripts/validate-skill.sh` to confirm no occurrence was missed.
 
 ## Maintaining the Skill
 
-- **Code examples must compile** — validate against the hAppenings or Nondominium codebase before committing new examples
-- **HDK 0.6 breaking changes** — `delete_link()` now requires `GetOptions::default()` as second argument; `GetLinksInputBuilder` replaced the old `LinkQuery::new()` in some contexts (see `references/patterns.md` for the authoritative API)
-- **No duplication across files** — each pattern lives in one canonical file; `SKILL.md` routes to it
-- **Workflow files** in `Workflows/` are step-by-step sequences; context files (`references/architecture.md`, `references/patterns.md`, etc.) are reference material. Keep these roles distinct
-- **docs/ is not part of the skill** — `docs/requirements.md` and `docs/roadmap.md` are project tracking, not loaded by skill routing
+- **`scripts/validate-skill.sh` is the gate.** It checks frontmatter, routing target resolution, orphaned markdown, relative links, version pin consistency, forbidden 0.6-era APIs, retirement of the old JS test harness, and leftover placeholder markers. CI runs it on every push and PR. Run it before committing. Read the script for the exact check names, since it scans for those names as literal strings and repeating them here would trip its own checks.
+- **`references/example-happ/` is the ground truth.** Every Rust example in the reference files must match an API shape that compiles there. Do not write API shapes from recall.
+- **The stable scaffolder is authoritative for generated-code idiom.** Holonix `main-0.7` ships `hc-scaffold 0.700.0-rc.0`, whose output does not compile against the stable crates. Generated-code examples must match `holochain_scaffolding_cli` **v0.700.0 stable**, installed separately.
+- **No duplication across files.** Each pattern lives in one canonical file; `SKILL.md` routes to it.
+- **Workflows vs references.** Files in `references/workflows/` are step-by-step sequences; the other `references/*.md` files are reference material. Keep the roles distinct.
+- **docs/ is not part of the skill.** `docs/requirements.md`, `docs/roadmap.md` and `docs/testing.md` are project tracking.
 
-## Key Architectural Concepts (for editing context files accurately)
+## Key Architectural Concepts (for editing reference files accurately)
 
 - Every Holochain domain = one integrity crate (`hdi`) + one coordinator crate (`hdk`)
 - Integrity code is locked to the DNA hash; coordinator code can be hot-swapped post-deployment
-- Validation in integrity must be **pure/deterministic**: no `get()`, no `agent_info()`, no time comparisons
-- Update chain tracking: `create_link(original_hash, updated_action_hash, LinkTypes::MyEntryUpdates)` — always link from original, never chain links
-- `post_commit` is infallible — must use `#[hdk_extern(infallible)]`
+- Validation in integrity must be **pure and deterministic**: no `get()`, no `agent_info()`, no time comparisons. Only the op itself and `must_get_*`
+- 0.7 action model: `Action` is `{ header, data }`. `FlatOp` variants are `CreateEntry`, `Update`, `Delete`, `Link`, `CreateRecord`, `AgentActivity`. Narrow with `TypedAction::<D>::try_from_action(action)?`, which returns `ExternResult`. `TypedAction<CreateData>` and `TypedAction<UpdateData>` widen into `TypedAction<EntryCreationData>` infallibly via `.into()`
+- A shape that sys validation already guarantees is an error to propagate with `?`, never a `ValidateCallbackResult::Invalid`
+- Update chain tracking: `create_link(original_hash, updated_action_hash, LinkTypes::MyEntryUpdates)`, always link from original, never chain links
+- `post_commit` is infallible: must use `#[hdk_extern(infallible)]`
 - `send_remote_signal` is fire-and-forget; `recv_remote_signal` requires an unrestricted cap grant in `init()`
+- Sweettest consistency: `await_consistency(cells)` waits 60s, `await_consistency_s(timeout, cells)` takes an explicit budget, `check_consistency(cells)` does not wait. There is no `await_consistency_60s`

@@ -15,6 +15,9 @@
 - [Patterns](references/patterns.md)
 - [Access Control](references/access-control.md)
 - [Cell Cloning](references/cell-cloning.md)
+- [Scheduled Functions](references/scheduling.md)
+- [Countersigning](references/countersigning.md)
+- [Signing and Encryption](references/cryptography.md)
 - [Error Handling](references/error-handling.md)
 
 # Development
@@ -47,3 +50,4 @@
 - [Requirements](docs/requirements.md)
 - [Roadmap](docs/roadmap.md)
 - [Testing Strategy](docs/testing.md)
+- [Release Gate v1.0](docs/release-gate-1.0.md)

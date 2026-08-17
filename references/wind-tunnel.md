@@ -3,7 +3,15 @@
 Wind-Tunnel is Holochain's load testing framework. It applies user-defined load to running Holochain conductors and measures system response: latency, throughput, DHT sync lag, resource usage. It is completely separate from Sweettest (integration/correctness) and Playwright (E2E UI).
 
 **Repo:** https://github.com/holochain/wind-tunnel
-**Version:** 0.6.1
+
+> **Version trap: use `main`, not the latest tag.** Wind Tunnel's own release numbering is independent of the Holochain version it targets, and the two currently disagree. Verified 2026-08-17 by reading the workspace `Cargo.toml` on each ref:
+>
+> | Ref | Pins | Holochain generation |
+> |---|---|---|
+> | tag `v0.7.1` (2026-07-21, latest release) | `hdk 0.6.3`, `hdi 0.7.3`, `holochain_client 0.8.3`, `kitsune2 0.4.1` | **0.6** |
+> | branch `main` | `hdk 0.7.0`, `hdi 0.8.0`, `holochain_client 0.9.0`, `kitsune2 0.5.0` | **0.7** |
+>
+> The "0.7.1" in the tag name is Wind Tunnel's version, not Holochain's. Checking out that tag against a 0.7 hApp gives you a dependency conflict, not a load test. Track `main` until a release ships with 0.7 pins.
 **Used for:** Performance regression CI (every merge to holochain main), soak testing, benchmarking
 
 ---

@@ -1,0 +1,63 @@
+name: Bug Report
+description: Something in the skill is wrong, misleading, or does not compile against the reference hApp.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem. The more precise you can be about which file and which version, the faster this gets fixed.
+
+  - type: input
+    id: skill-file
+    attributes:
+      label: Skill file involved
+      description: Which file in the skill did you find the problem in? (for example `SKILL.md`, `references/patterns.md`, `references/workflows/scaffold.md`)
+      placeholder: references/patterns.md
+    validations:
+      required: true
+
+  - type: input
+    id: holochain-versions
+    attributes:
+      label: Holochain / hdk / hdi versions in use
+      description: The exact versions your project is using, not just "latest".
+      placeholder: "holochain 0.7.0, hdk = \"=0.7.0\", hdi = \"=0.8.0\""
+    validations:
+      required: true
+
+  - type: textarea
+    id: scaffold-version
+    attributes:
+      label: "`hc scaffold --version` output"
+      description: Paste the literal output of running `hc scaffold --version` (or `hc-scaffold --version`, whichever binary you have installed).
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-text
+    attributes:
+      label: Literal error text
+      description: Paste the exact error output (compiler error, conductor log, `hc` CLI output, or test failure). Do not paraphrase it; the literal text is what lets a maintainer match it against `references/troubleshooting.md`.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: validator-passes
+    attributes:
+      label: Does `scripts/validate-skill.sh` pass on your checkout?
+      description: Run `sh scripts/validate-skill.sh` from the repository root before filing, if you have a local checkout.
+      options:
+        - "Yes, it passes"
+        - "No, it fails"
+        - "Not applicable / I don't have a local checkout"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything else that would help reproduce or understand the problem (project structure, what you were trying to do, links to your code).

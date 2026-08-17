@@ -54,15 +54,7 @@ pub fn delete_post_for_agent(input: RemovePostForAgentInput) -> ExternResult<()>
         GetStrategy::default(),
     )?;
     for link in links {
-        if link
-            .target
-            .clone()
-            .into_action_hash()
-            .ok_or(wasm_error!(WasmErrorInner::Guest(
-                "No action hash associated with link".to_string()
-            )))?
-            == input.target_post_hash.clone().into_hash()
-        {
+        if link.target == input.target_post_hash.clone().into() {
             delete_link(link.create_link_hash, GetOptions::default())?;
         }
     }

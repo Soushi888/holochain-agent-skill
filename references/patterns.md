@@ -455,6 +455,42 @@ Details::Entry(details) => Ok(Some(Record::new(
 
 Removed from the HDK entirely, host functions included. WASM that still references them fails to instantiate. Blocking is now a system-level behaviour driven by warrants, not something an application decides. Application-level blocking built on these needs redesigning rather than porting.
 
+#### What replaced them: warrants and chain status
+
+A **warrant** is a notice, issued by an authority that validated a DHT operation, that a specific action by a specific agent was invalid. Warrants propagate to the neighborhood holding that agent's activity. The system acts on them. Your zome reads them.
+
+You get both the status and the warrants from one call:
+
+```rust
+let activity = get_agent_activity(
+    agent.clone(),
+    ChainQueryFilter::new(),
+    ActivityRequest::Status,
+    GetOptions::default(),
+)?;
+
+match activity.status {
+    ChainStatus::Valid(head)   => { /* valid as far as THIS authority saw */ }
+    ChainStatus::Forked(fork)  => { /* two conflicting actions at one sequence */ }
+    ChainStatus::Invalid(head) => { /* invalid from this action forward */ }
+    ChainStatus::Empty         => { /* this authority knows nothing yet */ }
+    _ => {}
+}
+
+if !activity.warrants.is_empty() {
+    // other authorities found invalidity that `status` does not reflect
+}
+```
+
+Four things about this that catch people out, all stated in the 0.7 source:
+
+1. **`ChainStatus::Valid` is one authority's opinion, not a verdict.** It means the authority you asked saw no invalid op. Another authority validating a *different* op for the same action may have found it invalid. Checking `status` without also checking `warrants` gives you a false clean bill of health.
+2. **`warrants` is the field that carries the cross-authority picture.** `status`, `valid_activity` and `rejected_activity` are all scoped to the responding authority. `valid_activity` can list actions that other authorities have warranted.
+3. **`Forked` wins over `Invalid`.** A chain that is both forked and has invalid records reports `Forked`. To see the invalid records too, read `warrants`, or re-query with `ActivityRequest::Full` and inspect `rejected_activity`.
+4. **`Closed` wins over `Valid`.** A chain whose head is a `CloseChain` action reports `Closed`, not `Valid`. Treat it as "this agent will append nothing further", not as an error.
+
+**Design consequence.** Since you can no longer block an agent from your zome, the honest pattern is: query activity before you act on an agent's data where the stakes justify a round trip, and let your own application logic decide to ignore, quarantine, or flag. That is a coordinator-side decision. It cannot live in `validate()`, which has no network access.
+
 ### `delete_link()` — requires GetOptions
 
 ```rust
@@ -547,11 +583,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
         FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry { app_entry, action } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action = create_action
-                    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
                 match app_entry {
                     EntryTypes::MyEntry(entry) => validate_create_my_entry(create_action, entry),
                 }
@@ -560,13 +592,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::Update(update_entry) => match update_entry {
             OpUpdate::Entry { app_entry, action } => {
-                let original_action = must_get_action(action.data.original_action_address.clone())?
-                    .action()
-                    .to_owned();
-                let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    original_action.try_into();
-                let original_action = original_action
-                    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                    must_get_action(action.data.original_action_address.clone())?
+                        .action()
+                        .to_owned(),
+                )?;
                 match app_entry {
                     EntryTypes::MyEntry(entry) => {
                         let original_record =
@@ -682,30 +712,35 @@ action.data.target_address.into_action_hash()   // move: needs .data
 | `FlatOp::RegisterAgentActivity(..)` | `FlatOp::AgentActivity(..)` |
 | `EntryCreationAction` | `TypedAction<EntryCreationData>` |
 
-**Widening and narrowing.** In a `CreateEntry` arm you hold a `TypedAction<CreateData>`, but a validation function shared with the update path takes `TypedAction<EntryCreationData>`. Convert through `Action` with `try_into`, which yields a `WrongActionError`:
+**Widening and narrowing.** Two directions, two different calls. Getting them the wrong way round is the most common 0.7 validation mistake.
+
+**Widening is infallible.** In a `CreateEntry` or `UpdateEntry` arm you already hold a `TypedAction<CreateData>` or `TypedAction<UpdateData>`, and a validation function shared with the update path takes `TypedAction<EntryCreationData>`. The variant you matched already proves the shape, so this is a plain `From`:
 
 ```rust
-let action: Action = action.into();
-let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> = action.try_into();
-let create_action = create_action
-    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+let create_action: TypedAction<EntryCreationData> = action.into();
 ```
 
-Map that to a `wasm_error!` and propagate with `?`, rather than returning `ValidateCallbackResult::Invalid`. Sys validation already guarantees the original of an update is a `Create` or `Update`, and that a `DeleteLink` points at a `CreateLink`, so a narrowing failure means that guarantee was violated. That is a fault, not bad data from the author, and blaming the author would be wrong.
-
-You can also build a `TypedAction` directly when you have already matched the data variant:
+**Narrowing a freshly-fetched action is fallible.** When you pull an `Action` back out of `must_get_action` or `must_get_valid_record`, its shape is not statically known, so it has to be checked:
 
 ```rust
-let create_link = match &record.action().data {
-    ActionData::CreateLink(create_link) => TypedAction {
-        header: record.action().header.clone(),
-        data: create_link.clone(),
-    },
-    _ => return Ok(ValidateCallbackResult::Invalid(
-        "The action that a DeleteLink deletes must be a CreateLink".to_string(),
-    )),
-};
+let original_action = TypedAction::<EntryCreationData>::try_from_action(
+    must_get_action(action.data.original_action_address.clone())?
+        .action()
+        .to_owned(),
+)?;
 ```
+
+`try_from_action` returns `ExternResult`, so it drops straight into a `?`-chain. There is also a `TryFrom<Action>` impl that yields `WrongActionError` instead, but it forces a `map_err(|e| wasm_error!(...))` at every call site. Prefer `try_from_action`.
+
+**Propagate the failure, never return `Invalid`.** Sys validation already guarantees that the original of an update is a `Create` or `Update`, and that a `DeleteLink` points at a `CreateLink`. A narrowing failure means that guarantee was violated, which is a fault in how the op reached your code, not bad data from its author. `ValidateCallbackResult::Invalid` blames the author. The `?` is correct.
+
+The same applies in a `DeleteLink` arm, where you need the `CreateLink` it deletes:
+
+```rust
+let create_link = TypedAction::<CreateLinkData>::try_from_action(record.action().clone())?;
+```
+
+Earlier 0.7 release candidates had no `try_from_action`, so generated code hand-rolled this as a `match &record.action().data { ActionData::CreateLink(..) => TypedAction { header, data }, _ => Invalid }`. If you inherit that shape from an rc-era scaffold, replace it: it is longer, and its fallback wrongly returns `Invalid`.
 
 **Link validation signatures collapsed.** Base address, target address and tag are all reachable through the action, so they are no longer separate arguments:
 

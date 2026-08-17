@@ -4,7 +4,9 @@
   inputs = {
     # Pin the versioned branch, not `main`. Holonix `main` tracks the current
     # dev line (0.8 as of August 2026), so `main` silently moves you off 0.7.
-    # `hc scaffold` 0.700.0-rc still emits `ref=main`; change it after scaffolding.
+    # Stable `hc scaffold` v0.700.0 emits this same `main-0.7` ref. The rc that
+    # holonix itself bundles (0.700.0-rc.0) still emits `main`; fix it if you
+    # scaffolded with the bundled binary. See references/troubleshooting.md.
     holonix.url = "github:holochain/holonix?ref=main-0.7";
 
     nixpkgs.follows = "holonix/nixpkgs";

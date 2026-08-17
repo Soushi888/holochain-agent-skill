@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] - 2026-08-17
+
+First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
+
+### Added
+
+- `references/countersigning.md`: atomic multi-agent commits, `PreflightRequest`, session times, enzymatic and M of N sessions, and the `unstable-countersigning` gate that means a stock conductor cannot run it
+- `references/scheduling.md`: `schedule()`, persisted crontab versus ephemeral duration, `#[hdk_extern(infallible)]`, and why scheduled functions run as the chain author
+- `references/cryptography.md`: `sign` / `sign_ephemeral`, `verify_signature` from validation, secretbox versus box, `create_x25519_keypair`, and what encryption does not buy you on a DHT
+- `references/migration.md`, `references/troubleshooting.md`, and the `UpgradeHolochain07` workflow
+- Warrants and chain status in `references/patterns.md`: what replaced the removed `block_agent` / `unblock_agent`, and why `ChainStatus::Valid` alone is not a clean bill of health
+- A dated toolchain currency table, a companion-library table, and an unstable-feature-gate table in `SKILL.md`
+- `references/example-happ/`: a real hApp that compiles and whose Sweettest suite passes, serving as the ground truth for every Rust example
+- `assets/templates/`: real template files rather than inlined code blocks
+- `scripts/validate-skill.sh` plus a CI workflow, and `scripts/bump-versions.sh`
+- `scripts/eval/`: a lexical routing regression guard
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue forms including a stale-version report, and a PR template
+- `docs/release-gate-1.0.md`: the completed release pass with evidence
+
+### Changed
+
+- **Breaking: repository restructured** to `SKILL.md` + `references/` + `references/workflows/` + `assets/templates/` + `scripts/`. Symlink installs pointing at the old flat layout will break
+- Version pins bumped to `hdk = "=0.7.0"`, `hdi = "=0.8.0"`, holonix `ref=main-0.7`, `@holochain/client` 0.21.0, `@holochain/hc-spin` 0.700.0, `nodejs_24`
+- Every Rust validation example ported to the 0.7 action model and then to the **stable v0.700.0 scaffolder idiom**: `TypedAction::<D>::try_from_action(...)?` for fallible narrowing, infallible `.into()` for Create and Update widening, and no hand-rolled `WrongActionError` plus `map_err` boilerplate
+- Testing guidance moved from the retired JS harness to Sweettest throughout
+- `references/wind-tunnel.md` now warns that the latest Wind Tunnel tag pins Holochain 0.6 while its `main` branch pins 0.7
+
+### Fixed
+
+- Documented that holonix `main-0.7` bundles `hc-scaffold 0.700.0-rc.0`, whose generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins, with each symptom and its fix
+- Corrected `manifest_version` from `"1"` to `"0"` in YAML examples
+- Removed stale `HDK 0.6` labels from `SKILL.md` and corrected `await_consistency_60s`, which does not exist, to `await_consistency`
+
 ## [0.2.0] — 2026-05-15
 
 ### Added

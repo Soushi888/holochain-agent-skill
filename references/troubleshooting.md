@@ -28,13 +28,40 @@ Entries marked **(verified)** were reproduced on Holochain 0.7.0 while building 
 
 ## Scaffolding
 
+### First, check which scaffolder you are running
+
+```
+hc scaffold --version
+```
+
+Holonix `main-0.7` bundles **`holochain_scaffolding_cli 0.700.0-rc.0`** (verified 2026-08-17 against the holonix `main-0.7` tip, rev `ffcc7c6`). The stable **v0.700.0** released 2026-07-31 and fixes every row in the rc block below. The bundled binary is the one you get by default, so most people hit these.
+
+Install the stable scaffolder alongside holonix and use it instead:
+
+```
+nix run github:holochain/scaffolding/v0.700.0 -- web-app my-app
+# or, once:
+cargo install holochain_scaffolding_cli --version 0.700.0
+```
+
+Stable v0.700.0 emits `holonix?ref=main-0.7`, `nodejs_24`, and stable pins `hdi 0.8.0` / `hdk 0.7.0` / `holochain 0.7.0`, and its `validate()` codegen compiles against those crates.
+
+### Applies to every scaffolder version
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Integrity zome "<name>" was not found in dna "<dna>"` **(verified)** | `--zome` takes the integrity crate's **package** name, not the directory name. `hc scaffold zome posts` creates directory `posts` with package `posts_integrity` | Pass `--zome posts_integrity` |
-| Scaffolded `flake.nix` says `ref=main` **(verified)** | `hc scaffold` 0.700.0-rc emits `main`, and holonix `main` tracks the 0.8 dev line | Change to `ref=main-0.7` after scaffolding, then `nix flake update` |
-| Scaffolded `flake.nix` says `nodejs_22` **(verified)** | Same stale template | Change to `nodejs_24` | <!-- legacy-ok -->
-| Scaffolded `Cargo.toml` pins `-rc` crates **(verified)** | The scaffolding CLI is itself an rc | Pin stable: `hdi = "=0.8.0"`, `hdk = "=0.7.0"` |
 | `hc: command not found` inside `nix develop` | Wrong holonix branch, or the shell did not rebuild | Check the `ref` in `flake.nix`, then `nix flake update && nix develop` |
+
+### Applies to `hc-scaffold 0.700.0-rc.0` only (the holonix-bundled binary)
+
+Fixed in stable v0.700.0. If you are on stable and see one of these, something else is wrong.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Scaffolded `flake.nix` says `ref=main` **(verified)** | The rc emits `main`, and holonix `main` tracks the 0.8 dev line | Change to `ref=main-0.7` after scaffolding, then `nix flake update` |
+| Scaffolded `flake.nix` says `nodejs_22` **(verified)** | Same stale template | Change to `nodejs_24` | <!-- legacy-ok -->
+| Scaffolded `Cargo.toml` pins `-rc` crates **(verified)** | The scaffolding CLI is itself an rc and pins its own generation | Pin stable: `hdi = "=0.8.0"`, `hdk = "=0.7.0"`, `holochain = "0.7.0"` |
 
 ---
 

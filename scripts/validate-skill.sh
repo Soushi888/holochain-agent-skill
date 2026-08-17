@@ -52,6 +52,7 @@ find . -name '*.md' -type f \
     ! -path './node_modules/*' \
     ! -path './assets/*' \
     ! -path './references/example-happ/*' \
+    ! -path './scripts/*' \
     | sed 's|^\./||' | sort > "$ALL_MD"
 
 # ---------------------------------------------------------------------------

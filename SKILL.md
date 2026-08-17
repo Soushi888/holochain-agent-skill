@@ -42,14 +42,14 @@ When proactively invoked: load `references/architecture.md` + `references/patter
 
 | Workflow | Trigger | File |
 |----------|---------|------|
-| **ReviewZome** | review zome, audit zome, check implementation, validate patterns, before implementing, PR review, code review on zome | `references/workflows/review-zome.md` |
-| **DesignDataModel** | design data model, model entries, what entries, what links, DHT schema | `references/workflows/design-data-model.md` |
+| **ReviewZome** | review zome, audit zome, check implementation, validate patterns, before implementing, PR review, pull request, sanity check, double-check, code review on zome | `references/workflows/review-zome.md` |
+| **DesignDataModel** | design data model, model entries, what entries, what links, entry vs link, DHT schema, DHT shape | `references/workflows/design-data-model.md` |
 | **Scaffold** | scaffold, new happ, new project, setup environment, init project, Holonix, nix develop, hc scaffold | `references/workflows/scaffold.md` |
-| **ManualScaffold** | create project files, scaffold without CLI, manual scaffold, AI creates files, no hc scaffold, scaffold in session | `references/workflows/manual-scaffold.md` |
-| **ImplementZome** | implement zome, create zome, scaffold zome, write zome | `references/workflows/implement-zome.md` |
-| **DesignAccessControl** | design access control, who can call, cap grant design | `references/workflows/design-access-control.md` |
-| **UpgradeHolochain07** | upgrade to 0.7, port from 0.6, migrate hApp, holochain 0.7 upgrade | `references/workflows/upgrade-holochain-0.7.md` |
-| **PackageAndDeploy** | deploy, package, distribute, kangaroo, installer, desktop app, webhapp | `references/workflows/package-and-deploy.md` |
+| **ManualScaffold** | project files, scaffold without CLI, manual scaffold, by hand, AI creates files, no hc scaffold, scaffold in session | `references/workflows/manual-scaffold.md` |
+| **ImplementZome** | implement zome, create zome, scaffold zome, write zome, full zome, CRUD zome, coordinator and integrity crates | `references/workflows/implement-zome.md` |
+| **DesignAccessControl** | design access control, who can call, allowed to call, cap grant design, capability grants | `references/workflows/design-access-control.md` |
+| **UpgradeHolochain07** | upgrade to 0.7, port from 0.6, migrate hApp, holochain 0.7 upgrade, upgrade holochain version, bring up to date, move to the latest holochain, hdi upgrade | `references/workflows/upgrade-holochain-0.7.md` |
+| **PackageAndDeploy** | deploy, package, distribute, distribution, kangaroo, installer, desktop app, webhapp | `references/workflows/package-and-deploy.md` |
 
 ## Context Files
 
@@ -57,19 +57,22 @@ Load on demand based on task:
 
 | File | Load When |
 |------|-----------|
-| `references/architecture.md` | Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole) |
-| `references/progenitor.md` | Progenitor pattern, DnaProperties struct, check_if_progenitor, bootstrap mode, coordinator guard, integrity enforcement (Moss pattern), auto-registration in create_user, deploy-time injection (dna.yaml / Sweettest / Kangaroo / Moss) |
-| `references/scaffolding.md` | New project setup, Holonix installation, Nix flake, hc CLI, `hc scaffold` commands, adding a new domain to existing project |
-| `references/patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation, HDK 0.6 API (GetStrategy, LinkQuery, Local vs Network), must_get, signals (remote signal, init cap grant) |
-| `references/access-control.md` | Cap grants, capability system, cap claim, recv_remote_signal setup, admin-only access |
-| `references/cell-cloning.md` | Cell cloning, partitioned data, clone roles, createCloneCell, clone_limit |
-| `references/error-handling.md` | Error types, WasmError, ExternResult patterns, thiserror |
-| `references/testing.md` | Four-layer strategy, Sweettest (Rust-native), E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
-| `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, DHT sync lag measurement, InfluxDB metrics pipeline |
+| `references/architecture.md` | Coordinator/integrity split, coordinator and integrity, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole) |
+| `references/progenitor.md` | Progenitor pattern, founder of the network, DnaProperties struct, check_if_progenitor, bootstrap mode, coordinator guard, integrity enforcement (Moss pattern), auto-registration in create_user, deploy-time injection (dna.yaml / Sweettest / Kangaroo / Moss) |
+| `references/scaffolding.md` | New project setup, Holonix installation, Nix flake, hc CLI, `hc scaffold` commands, new domain, adding a new domain to existing project |
+| `references/patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation (`FlatOp`, `TypedAction<D>`), HDK 0.7 get/link API (`GetStrategy`, `LinkQuery`, `GetOptions`, get_links), update chain, cross-DNA calls, warrants and chain forks, must_get, signals (remote signal, init cap grant) |
+| `references/access-control.md` | Cap grants, capability grants, capability system, cap claim, remote signal, recv_remote_signal setup, admin-only access |
+| `references/cryptography.md` | App-level signing and encryption: `sign`, `sign_ephemeral`, `verify_signature` in validation, secretbox vs box, `create_x25519_keypair`, encrypting to an AgentPubKey, and what encryption does not buy you |
+| `references/scheduling.md` | Scheduled functions, `schedule()`, `Schedule::Persisted` crontab vs `Schedule::Ephemeral`, `#[hdk_extern(infallible)]`, scheduler loop timing, why scheduled fns run as the chain author |
+| `references/countersigning.md` | Countersigning, atomic multi-agent commits, `PreflightRequest`, `accept_countersigning_preflight_request`, session times, enzymatic sessions, M of N optional signers, `unstable-countersigning` feature gate |
+| `references/cell-cloning.md` | Cell cloning, partitioned data, own copy of the DNA, clone roles, createCloneCell, clone_limit |
+| `references/error-handling.md` | Error types, WasmError, ExternResult, extern result patterns, thiserror |
+| `references/testing.md` | Four-layer strategy, Sweettest (Rust-native), two agents, await_consistency, E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
+| `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, sync lag, DHT sync lag measurement, load testing, InfluxDB metrics pipeline |
 | `references/client.md` | holochain-client setup, callZome, signals, SvelteKit integration |
 | `references/troubleshooting.md` | **Any literal error string** from the compiler, conductor, `hc` CLI or a test. Check here first when something fails |
-| `references/migration.md` | DNA migration, `init_properties`, `get_init_properties()`, carrying data across DNA versions, why 0.7 is a new network |
-| `references/deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning |
+| `references/migration.md` | DNA migration, `init_properties`, `get_init_properties()`, carry over, chain history, carrying data across DNA versions, why 0.7 is a new network |
+| `references/deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning, version bump, data resets after update |
 
 ## Quick Reference
 
@@ -80,6 +83,56 @@ Dev commands:  nix develop  |  hc sandbox clean  |  cargo test
 Build zomes:   RUSTFLAGS='--cfg getrandom_backend="custom"' cargo build --release --target wasm32-unknown-unknown
 Scaffold:      hc scaffold entry-type MyEntry  |  hc scaffold link-type AgentToMyEntry
 ```
+
+### Toolchain currency
+
+Verified against live registries and git refs on **2026-08-17**. Re-verify before trusting these past a Holochain minor release.
+
+| Component | Current | Source |
+|---|---|---|
+| `hdk` / `hdi` / `holochain` | 0.7.0 / 0.8.0 / 0.7.0 | crates.io |
+| `@holochain/client` | 0.21.0 | npm |
+| `@holochain/hc-spin` | 0.700.0 | npm |
+| `holochain_scaffolding_cli` | 0.700.0 (stable, 2026-07-31) | crates.io / scaffolding `v0.700.0` |
+| holonix | branch `main-0.7` | github.com/holochain/holonix |
+| kangaroo-electron | branch `main-0.7` | github.com/holochain/kangaroo-electron |
+| `@holochain/tryorama` | 0.19.2, last published 2026-05-15, **no 0.7 release** | npm | <!-- legacy-ok -->
+
+
+> **Scaffolder version trap.** Holonix `main-0.7` ships **`hc-scaffold 0.700.0-rc.0`**, not the stable `v0.700.0`. The rc emits `holonix?ref=main` and `-rc` crate pins, and its generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins. Install the stable scaffolder alongside holonix rather than using the bundled one:
+> ```
+> nix run github:holochain/scaffolding/v0.700.0 -- web-app my-app
+> # or: cargo install holochain_scaffolding_cli --version 0.700.0
+> ```
+> `references/troubleshooting.md` lists each rc symptom and its fix if you are stuck with the bundled binary.
+
+### Companion libraries: what is actually on 0.7
+
+Verified against npm and each repo's `Cargo.toml` on **2026-08-17**. Version numbers in this ecosystem are not reliable signals, so check the pins rather than the tag.
+
+| Project | State on 0.7 | What to do |
+|---|---|---|
+| `@holochain-open-dev/elements`, `/utils`, `/file-storage` | 0.700.0, published 2026-07-31 to 08-13 | Safe to use |
+| `@holochain-open-dev/profiles` | 0.701.0, published 2026-08-11 | Safe to use |
+| `@holochain-open-dev/signals` | stable is 0.601.0 (2026-04-27); only a `dev` tag at 0.700.0-dev.0 | Pre-release only, do not treat as settled |
+| Wind Tunnel | latest tag `v0.7.1` pins hdk **0.6.3**; branch `main` pins hdk 0.7.0 | Track `main`. See `references/wind-tunnel.md` |
+| hREA | `happ-0.4.0-beta` pins hdk **0.6.1** | Still 0.6 generation. Do not assume 0.7 compatibility |
+| Moss / Weave (`@theweave/api`) | 0.7.0-dev.2, dev channel only | Pre-release |
+| Tauri Holochain plugins | `tauri-plugin-holochain-service` 0.2.3, last published 2025-11-10; `tauri-plugin-holochain` is a 0.0.0 placeholder | Unmaintained against 0.7. Use Kangaroo |
+| Official editor extension, non-JS/Rust bindings | none found | The supported clients are `@holochain/client` and the `holochain_client` crate |
+
+### Unstable feature gates
+
+Holochain 0.7 keeps several capabilities behind Cargo features that are **off by default**. Default features on `holochain 0.7.0` are `encryption`, `schema`, `wasmer-sys-cranelift` only. Turning any of these on means building and shipping your own conductor, which stock holonix and Kangaroo binaries will not have.
+
+| Feature | Gates | Notes |
+|---|---|---|
+| `unstable-countersigning` | Atomic multi-agent commits | See `references/countersigning.md` |
+| `unstable-migration` | The DNA manifest `lineage` field and `UseExisting` dependency matching | A declared ancestor chain. Holochain does not verify the lineage is truthful |
+| `unstable-functions` | A small set of host functions including the deprecated `sleep()` | Low value for most hApps |
+| `unstable-sharding` | Declared in `holochain 0.7.0`'s feature list. Nothing in the vendored crate sources references it, so its current scope is **unverified** | Do not design around it |
+
+**Agent key management (DeepKey / DPKI) is not in the SDK.** There is no `dpki` or `deepkey` surface anywhere in `hdk 0.7.0` or `hdi 0.8.0`. It exists as a separate, still-unstable conductor service. Do not expect key rotation or key-to-person binding APIs from a zome.
 
 ## Common Pitfalls Checklist
 
@@ -93,18 +146,21 @@ Run this against any zome code being written or reviewed. Each item is a class o
   ```
 
 ### Cross-DNA Calls
-- [ ] **`ZomeCallResponse` is exhaustive** — HDK 0.6 has 5 variants: `Ok`, `Unauthorized`, `AuthenticationFailed`, `NetworkError`, `CountersigningSession`. Wildcard `_` is safe but hides new variants. Exhaustive match is preferred.
+- [ ] **`ZomeCallResponse` is exhaustive** — 0.7 has 5 variants: `Ok(ExternIO)`, `AuthenticationFailed(Signature, AgentPubKey)`, `Unauthorized(ZomeCallAuthorization, Option<CapSecret>, ZomeName, FunctionName)`, `NetworkError(String)`, `CountersigningSession(String)`. Note `Unauthorized` carries no `AgentPubKey` in 0.7. Wildcard `_` is safe but hides new variants. Exhaustive match is preferred.
 - [ ] **Role name matches `happ.yaml`** — `CallTargetCell::OtherRole("role_name")` must exactly match the role name in `workdir/happ.yaml`. Typos fail silently at runtime.
 - [ ] **Zome name matches coordinator crate name** — `ZomeName("zome_name")` must match the coordinator's `name` in `Cargo.toml`. Check both.
 - [ ] **Local mirror structs for cross-DNA types** — Avoid importing the remote DNA's Cargo crate. Define a local serialization mirror struct instead.
 
 ### Validation Rules
-- [ ] **No DHT reads in `validate()`** — `validate()` must be deterministic. No `get()`, `get_links()`, `agent_info()`, `sys_time()`. Only inspect the op itself.
-- [ ] **Use `op.flattened::<EntryTypes, LinkTypes>()`** — Not the old `op.to_type()`. references/patterns.md has the correct pattern.
+- [ ] **No DHT reads in `validate()`** — `validate()` must be deterministic. No `get()`, `get_links()`, `agent_info()`, `sys_time()`. Only inspect the op itself and `must_get_*`.
+- [ ] **Use `op.flattened::<EntryTypes, LinkTypes>()`** — Not the old `op.to_type()`. `references/patterns.md` has the correct pattern.
+- [ ] **Narrow actions with `TypedAction::<D>::try_from_action(...)?`** — Not `let r: Result<_, WrongActionError> = action.try_into();` followed by `map_err(|e| wasm_error!(...))`. `try_from_action` returns `ExternResult` and drops into a `?`-chain directly. `TypedAction<CreateData>` and `TypedAction<UpdateData>` widen into `TypedAction<EntryCreationData>` infallibly with `.into()`.
+- [ ] **A shape sys validation already guarantees is an error, not `Invalid`** — if a `DeleteLink`'s target is not a `CreateLink`, propagate with `?`. Returning `ValidateCallbackResult::Invalid` blames the author for a fault in how the op reached your code.
+- [ ] **`TypedAction<D>` derefs to `D`** — `action.data.entry_hash` and `action.entry_hash` both work for reads. Keep `action.data.x` where you need to move the field out, since `Deref` only lends.
 
-### HDK 0.6 API
+### HDK 0.7 Get and Link API
 - [ ] **`delete_link()` requires `GetOptions`** — `delete_link(hash, GetOptions::default())` not `delete_link(hash)`.
-- [ ] **`get_links()` uses `LinkQuery::try_new()`** — Not `GetLinksInputBuilder` for most cases.
+- [ ] **`get_links()` takes a `LinkQuery` plus a `GetStrategy`** — `get_links(LinkQuery::try_new(base, LinkTypes::X)?, GetStrategy::default())`. Not `GetLinksInputBuilder` for most cases.
 - [ ] **`GetStrategy::Local` vs `Network`** — Use `Local` for own-data queries (fast, no network), `Network` for DHT queries (cross-agent data).
 
 ### Shared Utility Patterns (project-specific)
@@ -127,7 +183,7 @@ User: "I need to model a Listing entry with status transitions"
 User: "My Sweettest passes alone but fails when another agent reads the entry"
 → Loads references/testing.md
 → Identifies missing await_consistency call before cross-agent read
-→ Adds await_consistency_60s([&alice, &bob]).await after Alice's create, before Bob's get
+→ Adds await_consistency(&cells).await.unwrap() after Alice's create, before Bob's get
 → Test passes reliably
 ```
 

@@ -59,11 +59,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
         FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry { app_entry, action } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action =
-                    create_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
                 match app_entry {
                     EntryTypes::Post(post) => validate_create_post(create_action, post),
                 }
@@ -71,11 +67,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             OpEntry::UpdateEntry {
                 app_entry, action, ..
             } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action =
-                    create_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
                 match app_entry {
                     EntryTypes::Post(post) => validate_create_post(create_action, post),
                 }
@@ -84,18 +76,14 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
         },
         FlatOp::Update(update_entry) => match update_entry {
             OpUpdate::Entry { app_entry, action } => {
-                let original_action = must_get_action(action.data.original_action_address.clone())?
-                    .action()
-                    .to_owned();
-                let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    original_action.try_into();
-                let original_action = original_action
-                    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let original_record =
+                    must_get_valid_record(action.original_action_address.clone())?;
+                let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                    original_record.action().clone(),
+                )?;
                 match app_entry {
                     EntryTypes::Post(post) => {
-                        let original_app_entry =
-                            must_get_valid_record(action.data.original_action_address.clone())?;
-                        let original_post = match Post::try_from(original_app_entry) {
+                        let original_post = match Post::try_from(original_record) {
                             Ok(entry) => entry,
                             Err(e) => {
                                 return Ok(ValidateCallbackResult::Invalid(format!(
@@ -110,12 +98,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
             _ => Ok(ValidateCallbackResult::Valid),
         },
         FlatOp::Delete(OpDelete { action }) => {
-            let original_record = must_get_valid_record(action.data.deletes_address.clone())?;
-            let original_record_action = original_record.action().clone();
-            let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                original_record_action.try_into();
-            let original_action =
-                original_action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+            let original_record = must_get_valid_record(action.deletes_address.clone())?;
+            let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                original_record.action().clone(),
+            )?;
             let app_entry_type = match original_action.entry_type() {
                 EntryType::App(app_entry_type) => app_entry_type,
                 _ => {
@@ -167,11 +153,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `CreateEntry`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `CreateEntry` validation failed
                 OpRecord::CreateEntry { app_entry, action } => {
-                    let action: Action = action.into();
-                    let action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        action.try_into();
-                    let action =
-                        action.map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                    let action: TypedAction<EntryCreationData> = action.into();
                     match app_entry {
                         EntryTypes::Post(post) => validate_create_post(action, post),
                     }
@@ -183,17 +165,11 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                     app_entry, action, ..
                 } => {
                     let original_record =
-                        must_get_valid_record(action.data.original_action_address.clone())?;
-                    let original_action = original_record.action().clone();
-                    let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        original_action.try_into();
-                    let original_action = original_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
-                    let creation_action: Action = action.clone().into();
-                    let creation_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        creation_action.try_into();
-                    let creation_action = creation_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                        must_get_valid_record(action.original_action_address.clone())?;
+                    let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                        original_record.action().clone(),
+                    )?;
+                    let creation_action: TypedAction<EntryCreationData> = action.clone().into();
                     match app_entry {
                         EntryTypes::Post(post) => {
                             let result = validate_create_post(creation_action, post.clone())?;
@@ -224,13 +200,10 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for an entry type here and keep it in `Delete`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Delete` validation failed
                 OpRecord::DeleteEntry { action, .. } => {
-                    let original_record =
-                        must_get_valid_record(action.data.deletes_address.clone())?;
-                    let original_action = original_record.action().clone();
-                    let original_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                        original_action.try_into();
-                    let original_action = original_action
-                        .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                    let original_record = must_get_valid_record(action.deletes_address.clone())?;
+                    let original_action = TypedAction::<EntryCreationData>::try_from_action(
+                        original_record.action().clone(),
+                    )?;
                     let app_entry_type = match original_action.entry_type() {
                         EntryType::App(app_entry_type) => app_entry_type,
                         _ => {
@@ -277,22 +250,12 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
                 // If you want to optimize performance, you can remove the validation for a link type here and keep it in `Link`
                 // Notice that doing so will cause `must_get_valid_record` for this record to return a valid record even if the `Link` validation failed
                 OpRecord::DeleteLink { action } => {
-                    let record = must_get_valid_record(action.data.link_add_address.clone())?;
-                    let create_link = match &record.action().data {
-                        ActionData::CreateLink(create_link) => TypedAction {
-                            header: record.action().header.clone(),
-                            data: create_link.clone(),
-                        },
-                        _ => {
-                            return Ok(ValidateCallbackResult::Invalid(
-                                "The action that a DeleteLink deletes must be a CreateLink"
-                                    .to_string(),
-                            ));
-                        }
-                    };
+                    let record = must_get_valid_record(action.link_add_address.clone())?;
+                    let create_link =
+                        TypedAction::<CreateLinkData>::try_from_action(record.action().clone())?;
                     let link_type = match LinkTypes::from_type(
-                        create_link.data.zome_index,
-                        create_link.data.link_type,
+                        create_link.zome_index,
+                        create_link.link_type,
                     )? {
                         Some(lt) => lt,
                         None => {

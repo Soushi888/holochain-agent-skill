@@ -81,11 +81,7 @@ pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult> {
     match op.flattened::<EntryTypes, LinkTypes>()? {
         FlatOp::CreateEntry(create_entry) => match create_entry {
             OpEntry::CreateEntry { app_entry, action } => {
-                let action: Action = action.into();
-                let create_action: Result<TypedAction<EntryCreationData>, WrongActionError> =
-                    action.try_into();
-                let create_action = create_action
-                    .map_err(|e| wasm_error!(WasmErrorInner::Guest(e.to_string())))?;
+                let create_action: TypedAction<EntryCreationData> = action.into();
                 match app_entry {
                     EntryTypes::MyEntry(entry) => validate_create_my_entry(create_action, entry),
                 }
