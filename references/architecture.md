@@ -6,13 +6,13 @@ Every domain in a Holochain hApp is split into two crates:
 
 | Layer | Crate type | Role |
 |-------|-----------|------|
-| **Integrity** | `hdi` | Defines entry types, link types, and validation rules. Pure deterministic logic — no I/O. |
+| **Integrity** | `hdi` | Defines entry types, link types, and validation rules. Deterministic; the only reads available are `must_get_*`. |
 | **Coordinator** | `hdk` | Implements CRUD functions, calls other zomes, emits signals. Can be updated post-deployment. |
 
 **Why the split matters:**
 - Integrity code is committed to the DNA hash — it cannot change without forking the network
 - Coordinator code can be hot-swapped without breaking agent data
-- Validation runs in integrity (deterministic, no external calls allowed)
+- Validation runs in integrity: deterministic, and the only reads available are the `must_get_*` family, which defers on an unresolved dependency rather than failing
 
 ### What belongs where
 

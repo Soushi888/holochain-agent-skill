@@ -14,11 +14,14 @@
 - [Progenitor Pattern](references/progenitor.md)
 - [Patterns](references/patterns.md)
 - [Access Control](references/access-control.md)
+- [Membranes](references/membranes.md)
 - [Cell Cloning](references/cell-cloning.md)
 - [Scheduled Functions](references/scheduling.md)
 - [Countersigning](references/countersigning.md)
 - [Signing and Encryption](references/cryptography.md)
 - [Error Handling](references/error-handling.md)
+- [Source Chain and Introspection](references/source-chain.md)
+- [Networking](references/networking.md)
 
 # Development
 
@@ -31,6 +34,7 @@
 - [Deployment](references/deployment.md)
 - [Migration](references/migration.md)
 - [Troubleshooting](references/troubleshooting.md)
+- [Debugging a Conductor](references/debugging.md)
 
 # Guided Workflows
 

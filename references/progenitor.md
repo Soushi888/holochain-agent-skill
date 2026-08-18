@@ -233,7 +233,8 @@ const agentPubKey = await adminWs.generateAgentPubKey();
 await adminWs.installApp({
   installed_app_id: "my-app",
   agent_key: agentPubKey,
-  bundle: appBundle,
+  // `source` is a tagged union: { type: "path", value } or { type: "bytes", value }.
+  source: { type: "path", value: "./workdir/my-app.happ" },
   roles_settings: {
     my_dna: {
       type: "provisioned",
@@ -247,7 +248,7 @@ await adminWs.installApp({
 });
 ```
 
-Note `value` wraps `modifiers` — this is required by the Holochain client `RolesSettings` type.
+Note `value` wraps `modifiers`: this is required by the client's `RoleSettings` type. See `client.md` for the full admin surface.
 
 ### Moss (group DNA)
 

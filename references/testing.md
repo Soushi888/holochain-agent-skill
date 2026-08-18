@@ -568,12 +568,18 @@ export default async function globalSetup() {
   await admin.installApp({
     installed_app_id: 'my_happ',
     agent_key: agentKey,
-    path: './workdir/my_happ.happ',
+    // 0.21: the bundle location is a tagged union under `source`, not a top-level `path`.
+    source: { type: 'path', value: './workdir/my_happ.happ' },
   });
   await admin.enableApp({ installed_app_id: 'my_happ' });
 
-  // 5. Open app interface on a free port
-  const { port } = await admin.attachAppInterface({ port: 0 });
+  // 5. Open app interface on a free port.
+  // `allowed_origins` is required and has no default. Omit it and the browser
+  // connection is rejected on origin, which looks exactly like a dead port.
+  const { port } = await admin.attachAppInterface({
+    port: 0,
+    allowed_origins: '*',
+  });
 
   // 6. Issue auth token
   const { token } = await admin.issueAppAuthenticationToken({

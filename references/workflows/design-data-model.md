@@ -110,7 +110,7 @@ Validation rules for {EntryName}:
     - Tags: max 10 items, each max 50 chars
 
   FORBIDDEN in validation (causes non-determinism):
-    - No DHT reads (get, get_links)
+    - No non-deterministic reads (get, get_links). `must_get_*` IS allowed
     - No agent_info()
     - No sys_time() comparisons to current time
     - No randomness

@@ -7,6 +7,12 @@
 # Usage: scripts/validate-skill.sh [-v]
 #   -v  verbose: also print each passing check
 #
+# Read the exit code from the SCRIPT, not from a pipeline. `validate-skill.sh |
+# tail -2; echo $?` reports tail's status, so a failing run reads as 0 and a
+# defect ships past a validator that caught it. Redirect and read the bare `$?`:
+#   sh scripts/validate-skill.sh > /tmp/v.txt 2>&1; echo "EXIT=$?"
+# In bash, `${PIPESTATUS[0]}` works too. This has bitten twice.
+#
 # Exemption: a line containing the marker `legacy-ok` is skipped by the
 # superseded-pin, removed-API and Tryorama checks. Upgrade guides and
 # troubleshooting tables have to name the old thing to tell you what to change;
@@ -258,6 +264,12 @@ check_absent pins 'hdi = "=0\.7' 'no superseded hdi 0.7.x pin'
 check_absent pins 'ref=main-0\.6' 'no superseded holonix main-0.6 ref'
 check_absent pins 'nodejs_22' 'no superseded nodejs_22'
 check_absent pins '@holochain/client": "\^0\.20' 'no superseded @holochain/client 0.20.x'
+
+# A stale prose LABEL is not a pin and the checks above cannot see it. A table
+# cell reading "HDK 0.6 API" four lines above a correct 0.7.0 pin shipped once
+# already, in README.md, past a green validator. Mark a deliberate historical
+# mention with a legacy-ok comment on the same line.
+check_absent labels 'HD[KI] 0\.[0-6][^0-9]' 'no stale HDK/HDI 0.6-or-older prose label'
 
 # ---------------------------------------------------------------------------
 # 6. APIs removed in Holochain 0.7 must not appear

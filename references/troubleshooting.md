@@ -81,7 +81,7 @@ Fixed in stable v0.700.0. If you are on stable and see one of these, something e
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Validation passes locally, fails for other agents | Non-deterministic validation: a DHT read, `agent_info()`, `sys_time()`, or `get_init_properties()` | Validation may only inspect the op and what `must_get_*` returns. See `patterns.md` |
+| Validation passes locally, fails for other agents | Non-deterministic validation: a `get()` or `get_links()` in a coordinator helper called from validation, `agent_info()`, `sys_time()`, or `get_init_properties()` | Validation may only inspect the op and what `must_get_*` returns. See `patterns.md` |
 | A progenitor check works for the installer and nobody else | Reading `init_properties` instead of `modifiers.properties`. Init properties are conductor-local and invisible to other peers | Use `dna_info().modifiers.properties`. See `progenitor.md` |
 | An entry fails to deserialize after a schema change | A field was added without `#[serde(default)]` | `Option<T>` alone is not sufficient. Add `#[serde(default)]` |
 | `WrongActionError` from a narrowing conversion | The action was not the variant sys validation guarantees | Propagate with `?`, do not return `Invalid`. It is a fault, not bad author data |

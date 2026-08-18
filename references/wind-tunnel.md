@@ -8,7 +8,7 @@ Wind-Tunnel is Holochain's load testing framework. It applies user-defined load 
 >
 > | Ref | Pins | Holochain generation |
 > |---|---|---|
-> | tag `v0.7.1` (2026-07-21, latest release) | `hdk 0.6.3`, `hdi 0.7.3`, `holochain_client 0.8.3`, `kitsune2 0.4.1` | **0.6** |
+> | tag `v0.7.1` (2026-07-21, latest release) | `hdk 0.6.3`, `hdi 0.7.3`, `holochain_client 0.8.3`, `kitsune2 0.4.1` | **0.6** | <!-- legacy-ok -->
 > | branch `main` | `hdk 0.7.0`, `hdi 0.8.0`, `holochain_client 0.9.0`, `kitsune2 0.5.0` | **0.7** |
 >
 > The "0.7.1" in the tag name is Wind Tunnel's version, not Holochain's. Checking out that tag against a 0.7 hApp gives you a dependency conflict, not a load test. Track `main` until a release ships with 0.7 pins.

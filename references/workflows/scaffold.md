@@ -149,7 +149,7 @@ hc s sandbox generate workdir/
 
 ### Step 7 — Set Up Tests
 
-**Sweettest (Rust) is the primary testing layer** — it runs in-process, is faster, and has first-class HDK 0.6 support. See `../testing.md` for full two-agent patterns.
+**Sweettest (Rust) is the primary testing layer.** It runs in-process, is faster, and has first-class HDK 0.7 support. See `../testing.md` for full two-agent patterns.
 
 Add a test crate to your Cargo workspace:
 

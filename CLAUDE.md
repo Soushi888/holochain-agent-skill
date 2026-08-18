@@ -29,6 +29,10 @@ references/                  Reference material, loaded on demand
   client.md                    @holochain/client setup, callZome, signals, SvelteKit integration
   deployment.md                Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
   migration.md                 DNA migration, init_properties, carrying data across DNA versions
+  networking.md                Kitsune2 + iroh transport, NetworkConfig, bootstrap and relay, self-hosting a bootstrap server
+  membranes.md                 genesis_self_check, membrane proofs, AgentValidationPkg validation, memproof install flow
+  source-chain.md              query() and ChainQueryFilter, cell introspection, sys_time/random_bytes, validation receipts
+  debugging.md                 RUST_LOG and WASM_LOG, hc sandbox, hc-client admin calls and zome calls
   troubleshooting.md           Literal error strings mapped to causes and fixes
   frameworks/                  Effect and Svelte integration notes
   workflows/                   Step-by-step guided sequences, routed from SKILL.md
@@ -73,10 +77,14 @@ Exact pins (`=`) are required. Holochain is sensitive to minor version changes. 
 
 - Every Holochain domain = one integrity crate (`hdi`) + one coordinator crate (`hdk`)
 - Integrity code is locked to the DNA hash; coordinator code can be hot-swapped post-deployment
-- Validation in integrity must be **pure and deterministic**: no `get()`, no `agent_info()`, no time comparisons. Only the op itself and `must_get_*`
+- Validation in integrity must be **pure and deterministic**: no `get()`, no `get_links()`, no `agent_info()`, no time comparisons. The only reads available are the `must_get_*` family, which defers on an unresolved dependency rather than failing
 - 0.7 action model: `Action` is `{ header, data }`. `FlatOp` variants are `CreateEntry`, `Update`, `Delete`, `Link`, `CreateRecord`, `AgentActivity`. Narrow with `TypedAction::<D>::try_from_action(action)?`, which returns `ExternResult`. `TypedAction<CreateData>` and `TypedAction<UpdateData>` widen into `TypedAction<EntryCreationData>` infallibly via `.into()`
 - A shape that sys validation already guarantees is an error to propagate with `?`, never a `ValidateCallbackResult::Invalid`
 - Update chain tracking: `create_link(original_hash, updated_action_hash, LinkTypes::MyEntryUpdates)`, always link from original, never chain links
 - `post_commit` is infallible: must use `#[hdk_extern(infallible)]`
 - `send_remote_signal` is fire-and-forget; `recv_remote_signal` requires an unrestricted cap grant in `init()`
 - Sweettest consistency: `await_consistency(cells)` waits 60s, `await_consistency_s(timeout, cells)` takes an explicit budget, `check_consistency(cells)` does not wait. There is no `await_consistency_60s`
+- Networking is Kitsune2 0.5.0 over iroh, unconditionally. tx5 and WebRTC are gone from `holochain_p2p 0.7`, `signal_url` became `relay_url`, and the `transport-iroh` cargo feature no longer exists on the `holochain` crate
+- `hc sandbox call` was removed in 0.7. Admin API calls moved to the `hc-client` binary (`hc-client call <subcommand> --port`), and its zome-call arguments are positional
+- `genesis_self_check` is written under that name but exported as `genesis_self_check_2`; `GenesisSelfCheckData` aliases V2, which carries only `membrane_proof` and `agent_key`. Call `dna_info()` inside the callback for DNA properties
+- Membrane enforcement that binds is validation of `FlatOp::CreateRecord(OpRecord::AgentValidationPkg { .. })`. The self-check runs on the joiner's own machine and a modified conductor skips it

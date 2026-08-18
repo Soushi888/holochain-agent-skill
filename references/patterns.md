@@ -763,11 +763,12 @@ pub fn validate_create_link_my_entry_updates(
 A `DeleteLink` action records only the link's base address and the hash of the `CreateLink` it deletes, so target address and tag are not on it. Under `FlatOp::Link` you do not have to chase that yourself: `OpLink` exposes `base_address()`, `target_address()` and `tag()` getters that read through to the `original_action`.
 
 **Determinism rules for validation:**
-- No `get()`, `get_links()`, or any DHT reads
+- No `get()` or `get_links()`. Neither exists in `hdi` at all, so this is enforced by the crate rather than by discipline
 - No `agent_info()` (can vary by context)
-- No `sys_time()` comparisons against current time
-- No `get_init_properties()` — init properties are conductor-local and never reach the DHT, so validation cannot see them. See `progenitor.md`
-- Only inspect the op itself and its embedded data
+- No `sys_time()` comparisons against current time. Use the timestamp already on the action
+- No `get_init_properties()`. Init properties are conductor-local and never reach the DHT, so validation cannot see them. See `progenitor.md`
+- **DHT reads are allowed, through the `must_get_*` family only:** `must_get_entry`, `must_get_action`, `must_get_valid_record`, `must_get_agent_activity`. These are deterministic in the sense that matters: an unresolvable dependency makes the callback return early with `UnresolvedDependencies`, deferring the verdict rather than failing it, so every validator eventually agrees. The HDI describes them as "available in contexts such as validation where both determinism and network access is desirable"
+- Everything else must come from the op itself and its embedded data
 
 See `error-handling.md` for `wasm_error!` and `WasmErrorInner` patterns, and `testing.md` for exercising validation in Sweettest.
 

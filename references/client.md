@@ -35,6 +35,135 @@ const admin = await AdminWebsocket.connect({
 
 ---
 
+## App Authentication Tokens
+
+A conductor does not hand out app connections to whoever asks. An app websocket connection is authenticated with a token that the **admin** interface issues, so the flow has two steps and two sockets.
+
+```typescript
+import { AdminWebsocket, AppWebsocket } from "@holochain/client";
+
+const admin = await AdminWebsocket.connect({
+  url: new URL(`ws://localhost:${adminPort}`),
+});
+
+// 1. Mint a token for one installed app.
+const { token } = await admin.issueAppAuthenticationToken({
+  installed_app_id: "my-app",
+  expiry_seconds: 30,   // optional; omit for the conductor default
+  single_use: true,     // optional; a token good for exactly one connection
+});
+
+// 2. Connect the app socket with it.
+const client = await AppWebsocket.connect({
+  url: new URL(`ws://localhost:${appPort}`),
+  token,
+});
+```
+
+The types:
+
+```typescript
+export type AppAuthenticationToken = number[];
+
+export interface IssueAppAuthenticationTokenRequest {
+  installed_app_id: InstalledAppId;
+  expiry_seconds?: number;
+  single_use?: boolean;
+}
+
+export interface IssueAppAuthenticationTokenResponse {
+  token: AppAuthenticationToken;
+  expires_at?: Timestamp;
+}
+```
+
+`single_use: true` plus a short `expiry_seconds` is the right default for a launcher handing a token to a browser window: the token is spent on connection and useless if it leaks afterwards.
+
+In a dev sandbox where the environment already provides a connection, `AppWebsocket.connect()` with no arguments discovers what it needs and you never see a token. In a packaged app you are the launcher, so you issue it yourself. Kangaroo does this for you; see `deployment.md`.
+
+### Attaching an app interface
+
+A token is useless without a port to spend it on. Admin attaches app interfaces:
+
+```typescript
+const { port } = await admin.attachAppInterface({
+  allowed_origins: "*",              // required, not defaulted
+  installed_app_id: "my-app",        // optional: restrict this interface to one app
+});
+```
+
+`allowed_origins` takes a comma separated list or `*`. A browser UI silently failing to connect is usually an origin rejection, not a port problem.
+
+Passing `installed_app_id` binds the interface: only tokens issued for that same app may connect to it. That is the isolation boundary when one conductor runs several apps.
+
+---
+
+## Admin API: Install and Manage
+
+App code should never touch the admin socket. Test harnesses, launchers and installers do.
+
+```typescript
+// Install
+await admin.installApp({
+  source: { type: "path", value: "./workdir/my-app.happ" },
+  installed_app_id: "my-app",
+  network_seed: "my-network",        // optional, overrides every DNA in the bundle
+  roles_settings: { /* see membranes.md */ },
+});
+
+await admin.enableApp({ installed_app_id: "my-app" });
+```
+
+`agent_key` is optional on install; omit it and the conductor generates one. `ignore_genesis_failure: true` leaves a failed app installed with empty cells instead of uninstalling it, which is a diagnostic setting rather than a production one.
+
+### Signing credentials for direct zome calls
+
+An admin-driven client that calls zome functions without going through an app interface needs its own capability grant:
+
+```typescript
+await admin.authorizeSigningCredentials(cellId);
+
+// or narrow it. `GrantedFunctions` is a tagged union in 0.21, not the old
+// `{ [GrantedFunctionsType.Listed]: ... }` object:
+await admin.authorizeSigningCredentials(cellId, {
+  type: "listed",
+  value: [["my_zome", "my_fn"]],
+});
+```
+
+This is what Playwright E2E setups and test harnesses use. See `testing.md`.
+
+### Inspection
+
+```typescript
+const apps    = await admin.listApps({});
+const cells   = await admin.listCellIds();
+const grants  = await admin.listCapabilityGrants({
+  installed_app_id: "my-app",
+  include_revoked: false,        // required, not optional
+});
+const stats   = await admin.dumpNetworkStats();
+```
+
+`include_revoked` has no default: leave it out and the call does not typecheck. Set it to `false` when you are asking "what can this agent do right now", and `true` only when you are auditing history, because a revoked grant in the list looks exactly like a live one at a glance.
+
+The same calls are available from the command line as `hc-client call ...`. See `debugging.md`.
+
+### App status
+
+`appInfo()` returns a status that a UI has to branch on:
+
+```typescript
+export type AppStatus =
+  | { type: "disabled"; value: DisabledAppReason }
+  | { type: "enabled" }
+  | { type: "awaiting_memproofs" };
+```
+
+`awaiting_memproofs` means the app is installed but waiting for a membrane proof before it can join. Handle it, or your app appears to install and then do nothing. See `membranes.md`.
+
+---
+
 ## callZome Pattern
 
 ```typescript

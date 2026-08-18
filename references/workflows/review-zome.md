@@ -1,6 +1,6 @@
 # ReviewZome Workflow
 
-Review existing zome code against Holochain best practices, HDK 0.6 patterns, and the project's established conventions. Run proactively before implementing any zome changes, or explicitly when asked to audit code.
+Review existing zome code against Holochain best practices, HDK 0.7 patterns, and the project's established conventions. Run proactively before implementing any zome changes, or explicitly when asked to audit code.
 
 ---
 
@@ -8,7 +8,7 @@ Review existing zome code against Holochain best practices, HDK 0.6 patterns, an
 
 Always load both:
 - `../architecture.md` — coordinator/integrity split, DNA roles, cross-DNA patterns
-- `../patterns.md` — HDK 0.6 API, entry types, link types, CRUD, validation rules
+- `../patterns.md` — HDK 0.7 API, entry types, link types, CRUD, validation rules
 
 ---
 
@@ -32,12 +32,12 @@ Work through each category. Flag every issue with severity: **BLOCK** (must fix 
 
 ### Integrity / Validation
 - [ ] `validate()` uses `op.flattened::<EntryTypes, LinkTypes>()?` not deprecated `op.to_type()`
-- [ ] No DHT reads inside `validate()` — no `get()`, `get_links()`, `agent_info()`, `sys_time()`
+- [ ] No non-deterministic reads inside `validate()` — no `get()`, `get_links()`, `agent_info()`, `sys_time()`. `must_get_*` is allowed and is the only sanctioned way to reach DHT state
 - [ ] New entry types are registered in the `#[hdk_entry_types]` enum
 - [ ] New link types are registered in the `#[hdk_link_types]` enum
 
-### Coordinator — HDK 0.6 API
-- [ ] `delete_link(hash, GetOptions::default())` — not the pre-0.6 single-arg form
+### Coordinator: HDK 0.7 API
+- [ ] `delete_link(hash, GetOptions::default())`, not the older single-argument form
 - [ ] `LinkQuery::try_new()` used for link queries (not old `GetLinksInputBuilder` unless specifically needed)
 - [ ] `GetStrategy::Local` for own-data queries; `GetStrategy::Network` for DHT queries
 - [ ] `must_get_valid_record()` used for fail-fast gets in update/delete authorship checks
@@ -45,7 +45,7 @@ Work through each category. Flag every issue with severity: **BLOCK** (must fix 
 ### Cross-Zome / Cross-DNA Calls
 - [ ] `CallTargetCell::OtherRole("hrea")` role name matches `workdir/happ.yaml` exactly
 - [ ] `ZomeName(...)` matches the coordinator crate `name` in its `Cargo.toml`
-- [ ] `ZomeCallResponse` match is exhaustive (5 variants in HDK 0.6: Ok, Unauthorized, AuthenticationFailed, NetworkError, CountersigningSession)
+- [ ] `ZomeCallResponse` match is exhaustive (5 variants in 0.7: `Ok`, `Unauthorized`, `AuthenticationFailed`, `NetworkError`, `CountersigningSession`. `Unauthorized` carries no `AgentPubKey` in 0.7)
 - [ ] No direct Cargo dependency on the remote DNA's crate — use local mirror structs for serialization
 - [ ] If using shared utility crates: verify intra-DNA and cross-DNA call helpers match the project's established patterns (e.g., wrapper functions in a `utils` crate rather than raw `call()` everywhere)
 

@@ -6,9 +6,10 @@ description: >
   cross-zome calls, Sweettest testing, TypeScript client integration, DNA
   migration and init properties, and Nix dev environments. USE WHEN writing zome code, designing DHT data models,
   scaffolding a new project, testing hApps, debugging HDK issues, implementing
-  entry types or links, cap grants, access control, cell cloning, deploying
-  or packaging hApps, upgrading a hApp to Holochain 0.7, migrating DNA data,
-  troubleshooting a Holochain error, or working on any Holochain project.
+  entry types or links, cap grants, access control, membrane proofs, cell cloning,
+  configuring bootstrap and relay servers, deploying or packaging hApps,
+  upgrading a hApp to Holochain 0.7, migrating DNA data, inspecting a running
+  conductor, troubleshooting a Holochain error, or working on any Holochain project.
 license: Apache-2.0
 compatibility: >
   Requires Nix dev environment (holonix ref=main-0.7). Rust toolchain managed
@@ -71,6 +72,10 @@ Load on demand based on task:
 | `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, sync lag, DHT sync lag measurement, load testing, InfluxDB metrics pipeline |
 | `references/client.md` | holochain-client setup, callZome, signals, SvelteKit integration |
 | `references/troubleshooting.md` | **Any literal error string** from the compiler, conductor, `hc` CLI or a test. Check here first when something fails |
+| `references/networking.md` | Kitsune2 and iroh transport, conductor `NetworkConfig`, `bootstrap_url`, `relay_url`, running your own bootstrap server, arc factor and leecher nodes, request timeouts, gossip reporting |
+| `references/debugging.md` | Nothing threw but something is wrong: `RUST_LOG` and `WASM_LOG`, `hc sandbox` subcommands, `hc-client call` admin requests, dump-state, dump-network-stats, dump-network-metrics, calling a zome function by hand |
+| `references/membranes.md` | Membrane proof, `genesis_self_check`, gating who may join, `AgentValidationPkg` validation, `provideMemproofs`, `awaiting_memproofs`, invite codes |
+| `references/source-chain.md` | `query()` and `ChainQueryFilter` over your own chain, `agent_info` / `zome_info` / `call_info` / `dna_info`, scratch-space chain head, `sys_time`, `random_bytes`, tracing from wasm, validation receipts |
 | `references/migration.md` | DNA migration, `init_properties`, `get_init_properties()`, carry over, chain history, carrying data across DNA versions, why 0.7 is a new network |
 | `references/deployment.md` | Packaging, distributing, Kangaroo-Electron, installers, desktop app, versioning, version bump, data resets after update |
 
@@ -102,8 +107,10 @@ Verified against live registries and git refs on **2026-08-17**. Re-verify befor
 > **Scaffolder version trap.** Holonix `main-0.7` ships **`hc-scaffold 0.700.0-rc.0`**, not the stable `v0.700.0`. The rc emits `holonix?ref=main` and `-rc` crate pins, and its generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins. Install the stable scaffolder alongside holonix rather than using the bundled one:
 > ```
 > nix run github:holochain/scaffolding/v0.700.0 -- web-app my-app
-> # or: cargo install holochain_scaffolding_cli --version 0.700.0
+> # or: cargo install holochain_scaffolding_cli --version 0.700.0 --locked
 > ```
+> **Always pass `--version`.** `cargo install holochain_scaffolding_cli` with no version installs **0.4000.4**, a Holochain 0.4-era scaffolder. This crate's version history mixes numbering schemes, and semver orders `0.4000.4` above `0.700.0`, so crates.io reports the old release as the latest stable one. Verified 2026-08-17: the crates.io API returns `"max_stable_version":"0.4000.4"` while `0.700.0` sits further down the version list.
+>
 > `references/troubleshooting.md` lists each rc symptom and its fix if you are stuck with the bundled binary.
 
 ### Companion libraries: what is actually on 0.7
@@ -152,7 +159,7 @@ Run this against any zome code being written or reviewed. Each item is a class o
 - [ ] **Local mirror structs for cross-DNA types** — Avoid importing the remote DNA's Cargo crate. Define a local serialization mirror struct instead.
 
 ### Validation Rules
-- [ ] **No DHT reads in `validate()`** — `validate()` must be deterministic. No `get()`, `get_links()`, `agent_info()`, `sys_time()`. Only inspect the op itself and `must_get_*`.
+- [ ] **No non-deterministic reads in `validate()`** — no `get()`, `get_links()`, `agent_info()`, `sys_time()`. DHT reads ARE allowed through `must_get_*`, which defers on an unresolved dependency instead of failing. Everything else comes from the op itself.
 - [ ] **Use `op.flattened::<EntryTypes, LinkTypes>()`** — Not the old `op.to_type()`. `references/patterns.md` has the correct pattern.
 - [ ] **Narrow actions with `TypedAction::<D>::try_from_action(...)?`** — Not `let r: Result<_, WrongActionError> = action.try_into();` followed by `map_err(|e| wasm_error!(...))`. `try_from_action` returns `ExternResult` and drops into a `?`-chain directly. `TypedAction<CreateData>` and `TypedAction<UpdateData>` widen into `TypedAction<EntryCreationData>` infallibly with `.into()`.
 - [ ] **A shape sys validation already guarantees is an error, not `Invalid`** — if a `DeleteLink`'s target is not a `CreateLink`, propagate with `?`. Returning `ValidateCallbackResult::Invalid` blames the author for a fault in how the op reached your code.

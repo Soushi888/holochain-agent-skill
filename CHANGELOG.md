@@ -22,6 +22,11 @@ First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 - `scripts/eval/`: a lexical routing regression guard
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue forms including a stale-version report, and a PR template
 - `docs/release-gate-1.0.md`: the completed release pass with evidence
+- `references/networking.md`: the 0.7 network stack. Kitsune2 0.5.0 over iroh, every `NetworkConfig` field with its real default, `bootstrap_url` and `relay_url`, the three timeouts that `request_timeout_s` derives, `target_arc_factor` for leecher nodes, and self-hosting `kitsune2-bootstrap-srv`
+- `references/membranes.md`: join-time gating. `genesis_self_check`, `GenesisSelfCheckDataV2`, membrane proofs in `AgentValidationPkg` validation, the deferred `provideMemproofs` flow and the `awaiting_memproofs` app status
+- `references/source-chain.md`: `query()` and `ChainQueryFilter` including the hash-bounded efficiency cliff, cell introspection across `dna_info` / `zome_info` / `agent_info` / `call_info`, `sys_time` and `random_bytes`, and validation receipts
+- `references/debugging.md`: reading a live conductor. `RUST_LOG` versus `WASM_LOG`, the `hc sandbox` subcommand set, and the `hc-client` admin and zome-call surface
+- App authentication tokens and the admin install surface in `references/client.md`: `issueAppAuthenticationToken`, `attachAppInterface`, `installApp` with `roles_settings`, and `authorizeSigningCredentials`
 
 ### Changed
 
@@ -36,6 +41,8 @@ First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 - Documented that holonix `main-0.7` bundles `hc-scaffold 0.700.0-rc.0`, whose generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins, with each symptom and its fix
 - Corrected `manifest_version` from `"1"` to `"0"` in YAML examples
 - Removed stale `HDK 0.6` labels from `SKILL.md` and corrected `await_consistency_60s`, which does not exist, to `await_consistency`
+- Documented why a bare `cargo install holochain_scaffolding_cli` installs the wrong tool: crates.io orders `0.4000.4` above `0.700.0` by semver, so the version must be pinned explicitly
+- Corrected `authorizeSigningCredentials` in `references/client.md` to the 0.21 tagged union `{ type: "listed", value: [[zome, fn]] }`, replacing the 0.20-era `GrantedFunctionsType` object form, and `listCapabilityGrants` to pass the required `include_revoked`
 
 ## [0.2.0] — 2026-05-15
 
