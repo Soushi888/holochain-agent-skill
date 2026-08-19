@@ -53,5 +53,6 @@
 
 - [Requirements](docs/requirements.md)
 - [Roadmap](docs/roadmap.md)
+- [Packaging Architecture](docs/packaging.md)
 - [Testing Strategy](docs/testing.md)
 - [Release Gate v1.0](docs/release-gate-1.0.md)
