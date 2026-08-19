@@ -17,3 +17,4 @@ book/
 bin/
 node_modules/
 dist/
+*.tgz

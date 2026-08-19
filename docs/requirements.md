@@ -69,7 +69,7 @@ Settled for v1.0 on 2026-08-17.
 
 | Question | Decision | Evidence |
 |---|---|---|
-| Public repo location | Personal GitHub, `Soushi888/holochain-agent-skill`, Apache-2.0. Moving to a community org stays possible later and costs nothing now | The repo is already there; `LICENSE` is Apache-2.0 |
+| Public repo location | Personal GitHub, `Soushi888/holochain-agent-skills`, Apache-2.0. Moving to a community org stays possible later and costs nothing now | The repo is already there; `LICENSE` is Apache-2.0 |
 | Contribution model | Open from day one | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1), issue forms including a dedicated stale-version report, and a PR template all ship in v1.0 |
 
 ### Still open, needs a maintainer call

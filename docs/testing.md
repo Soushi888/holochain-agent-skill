@@ -143,50 +143,73 @@ grep -rn "holonix" . --include="*.md" | grep -v Plans/
 
 ---
 
-## T6 — Installation Tests
+## T6 - Installation Tests
 
-Perform each installation method in a clean environment.
+Every method below is now covered by an automated job in `.github/workflows/validate.yml`
+(the `package` and `nix` jobs). Run them by hand only when changing the installer, the
+`files` array, the archive builder or the flake. Each one starts from a clean scratch
+directory.
 
-### Option A — Global copy
+### Option A - npm installer, the documented default
 
 ```bash
-cd /tmp
-git clone https://github.com/Soushi888/holochain-agent-skill
-cp -r holochain-agent-skill ~/.claude/skills/holochain
+mkdir -p /tmp/t6a && cd /tmp/t6a
+bunx holochain-agent-skills install --yes
 ```
 
 | # | Test | Pass condition |
 |---|------|----------------|
-| T6.1 | Directory created | `~/.claude/skills/holochain/` exists |
-| T6.2 | `SKILL.md` present inside | `~/.claude/skills/holochain/SKILL.md` exists |
-| T6.3 | `Workflows/` subdirectory present | `~/.claude/skills/holochain/Workflows/` exists with 5 files |
-| T6.4 | All context files present | `references/architecture.md`, `references/patterns.md`, etc. all copied |
+| T6.1 | Skill installed at the printed path | `.claude/skills/holochain/SKILL.md` exists |
+| T6.2 | `references/` present | `.claude/skills/holochain/references/workflows/` holds 8 files |
+| T6.3 | `assets/templates/` present | 17 template files copied |
+| T6.4 | No workshop files leaked | No `book.toml`, `SUMMARY.md`, `CHANGELOG.md`, `CLAUDE.md`, `docs/` or `scripts/` under the installed directory |
+| T6.5 | No build output copied | No `target/` or `node_modules/` under the installed directory |
 
-### Option B — Project-local
+### Option B - harness detection
+
+| # | Test | Setup | Pass condition |
+|---|------|-------|----------------|
+| T6.6 | Nothing detected | Empty directory | Falls back to `.claude/skills` and `.agents/skills`, and says so |
+| T6.7 | Exactly one detected | `mkdir .cursor` | Installs to `.cursor/skills` without asking |
+| T6.8 | Several detected, no TTY | `mkdir .claude .opencode .github`, run with stdin closed | Installs to all three, does not prompt, does not hang |
+| T6.9 | Several detected, TTY | Same, under a pty | Prompts, honours a numeric selection, installs only what was chosen |
+| T6.10 | Unknown target | `--target nope` | Exits 2 and names the known targets |
+
+### Option C - release archive, the no-npm path
 
 ```bash
-cd /tmp/my-test-project
-mkdir -p .claude/skills
-cp -r /tmp/holochain-agent-skill .claude/skills/holochain
+mkdir -p /tmp/t6c/.claude/skills && cd /tmp/t6c
+curl -fsSL https://github.com/Soushi888/holochain-agent-skills/releases/latest/download/holochain-agent-skills.tar.gz | tar -xz -C .claude/skills
 ```
 
 | # | Test | Pass condition |
 |---|------|----------------|
-| T6.5 | Skill installed at project path | `.claude/skills/holochain/SKILL.md` exists |
-| T6.6 | Does not affect global `~/.claude/skills/` | Global directory unchanged |
+| T6.11 | One command, correct shape | `.claude/skills/holochain/SKILL.md` exists, no rename step needed |
+| T6.12 | Checksums verify | `sha256sum -c SHA256SUMS` passes for every asset |
+| T6.13 | Archives are reproducible | Two builds of the same commit produce identical `SHA256SUMS` |
 
-### Option C — Symlink
+### Option D - symlink, for skill development
 
 ```bash
-git clone https://github.com/Soushi888/holochain-agent-skill ~/holochain-agent-skill
-ln -s ~/holochain-agent-skill ~/.claude/skills/holochain
+git clone https://github.com/Soushi888/holochain-agent-skills ~/holochain-agent-skills
+cd /tmp/t6d && node ~/holochain-agent-skills/bin/install.mjs install --link
 ```
 
 | # | Test | Pass condition |
 |---|------|----------------|
-| T6.7 | Symlink created | `~/.claude/skills/holochain` is a symlink |
-| T6.8 | Symlink resolves | `ls -la ~/.claude/skills/holochain/SKILL.md` returns file |
-| T6.9 | `git pull` propagates | Pull in `~/holochain-agent-skill`, symlink sees updates immediately |
+| T6.14 | Symlink created | `.claude/skills/holochain` is a symlink to `skills/holochain` in the clone |
+| T6.15 | `git pull` propagates | Pull in the clone, the symlinked install sees the change immediately |
+| T6.16 | Reinstall over a symlink | A subsequent plain `install` replaces the symlink with a real directory rather than failing |
+
+### Option E - Nix
+
+| # | Test | Command | Pass condition |
+|---|------|---------|----------------|
+| T6.17 | Skill derivation is rooted at the skill | `nix build .#holochain` | `$out/SKILL.md` exists |
+| T6.18 | Bundle matches the archive shape | `nix build .#default` | `$out/holochain/SKILL.md` exists |
+| T6.19 | The derivation gates on the validator | Seed a frontmatter/directory name mismatch | `nix build` fails with that message |
+| T6.20 | Flake checks pass | `nix flake check` | Exit 0 |
+| T6.21 | `mkSkillsHook` survives a second shell | Enter a consumer devShell twice | No permission error on the second entry |
 
 ---
 
@@ -340,7 +363,9 @@ Covered by T7 and T9 above.
 | T11.3 | No `docs/` loaded by skill | `SKILL.md` routing table has no reference to `docs/` | Zero `docs/` entries in routing table |
 | T11.4 | No broken markdown links | Scan for relative markdown links in all files | All linked files exist |
 | T11.5 | No TODO / STUB markers | `grep -rn "TODO\|STUB\|PLACEHOLDER" . --include="*.md"` | Zero matches in non-Plans/ files |
-| T11.6 | README reflects current install path | `grep "holochain-agent-skill" README.md` | All cp/ln commands use `holochain-agent-skill` as source |
+| T11.6 | README install command is the one that works | Run the first fenced command in README.md verbatim in a scratch directory | Skill installed, exit 0 |
+| T11.8 | Nothing outside the payload ships | `npm pack --dry-run` | Every path is under `skills/`, `bin/`, or is `README.md` / `LICENSE` / `package.json` |
+| T11.9 | The four version declarations agree | `sh scripts/check-versions.sh` | Exit 0 |
 | T11.7 | CLAUDE.md license annotation | `grep "Apache" CLAUDE.md` | Matches `Apache-2.0` |
 
 ---

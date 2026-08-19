@@ -60,7 +60,7 @@ appointed representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported by opening an issue on the
-[Soushi888/holochain-agent-skill](https://github.com/Soushi888/holochain-agent-skill/issues)
+[Soushi888/holochain-agent-skills](https://github.com/Soushi888/holochain-agent-skills/issues)
 repository. If the report concerns behavior in an issue or pull request
 thread, open a new issue rather than continuing the discussion there. All
 complaints will be reviewed and investigated promptly and fairly.
