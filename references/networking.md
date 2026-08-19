@@ -61,6 +61,15 @@ Serialized under `network:` in `conductor-config.yaml`, `snake_case`, unknown fi
 | `report` | `ReportConfig` | `None` | Kitsune2 reporting output |
 | `advanced` | `Option<JSON>` | none | Raw Kitsune2 module config. Every field above is sugar over a key in here |
 
+### "Default" here means the Rust `Default` impl, not a serde default
+
+`bootstrap_url` and `relay_url` are the two fields in the table with no `#[serde(default)]`. The distinction matters when you hand-write `conductor-config.yaml`:
+
+- Omit the whole `network:` block and you get every value in the table, because `ConductorConfig` marks the field `#[serde(default)]` and falls back to `NetworkConfig::default()`.
+- Write a partial `network:` block that sets, say, only `request_timeout_s`, and startup fails with `missing field bootstrap_url`. Once the key is present, both URLs are required.
+
+So a `network:` block is all-or-nothing on those two. Every other field in the table is individually optional.
+
 ### The two defaults you should not ship with
 
 `dev-test-bootstrap2.holochain.org` is named "dev-test" for a reason, and the default relay is an iroh **canary** host. Both are fine for development and neither is a production commitment by anyone. A hApp you distribute should point at infrastructure you or your community controls. See "Running your own bootstrap server" below.
