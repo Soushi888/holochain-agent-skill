@@ -61,6 +61,22 @@ find . -name '*.md' -type f \
     ! -path './scripts/*' \
     | sed 's|^\./||' | sort > "$ALL_MD"
 
+# Shipped code: the templates users copy into their projects and the example
+# hApp. These are NOT markdown and are deliberately absent from ALL_MD, which
+# exists for routing and orphan checks. They still ship, so the forbidden-API
+# and pin checks below must see them. A stale pin or a removed-in-0.7 API in
+# assets/templates/ is worse than one in prose: prose is read, a template is
+# copied. Build output and lockfiles are excluded; lockfiles pin transitively
+# and are regenerated, not hand-maintained.
+SHIPPED_CODE="$TMPDIR_/shipped_code"
+find assets references/example-happ \
+    \( -name '*.rs' -o -name '*.toml' -o -name '*.json' -o -name '*.nix' \
+       -o -name '*.yaml' -o -name '*.yml' \) -type f \
+    ! -path '*/target/*' \
+    ! -name 'Cargo.lock' \
+    ! -name 'flake.lock' \
+    2>/dev/null | sed 's|^\./||' | sort > "$SHIPPED_CODE"
+
 # ---------------------------------------------------------------------------
 # 1. Frontmatter
 # ---------------------------------------------------------------------------
@@ -247,6 +263,14 @@ while IFS= read -r f; do
     ' "$f" >> "$CODE_LINES"
 done < "$ALL_MD"
 
+# Shipped code files are code end to end, so every line counts. No fence
+# extraction: there are no fences, and a removed API in a template is an
+# instruction whether or not it sits in a comment.
+while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    awk -v file="$f" '{ printf "%s:%d:%s\n", file, NR, $0 }' "$f" >> "$CODE_LINES"
+done < "$SHIPPED_CODE"
+
 check_absent_in_code() {
     # check_absent_in_code <label> <pattern> <explanation>
     hits=$(grep -n "$2" "$CODE_LINES" 2>/dev/null | sed 's/^[0-9]*://' | grep -v 'legacy-ok')
@@ -270,6 +294,20 @@ check_absent pins '@holochain/client": "\^0\.20' 'no superseded @holochain/clien
 # already, in README.md, past a green validator. Mark a deliberate historical
 # mention with a legacy-ok comment on the same line.
 check_absent labels 'HD[KI] 0\.[0-6][^0-9]' 'no stale HDK/HDI 0.6-or-older prose label'
+
+# The same pin checks over shipped code. check_absent above scans prose and
+# config but excludes assets/ and lists no *.rs, so a template could carry a
+# 0.6 pin past a green run. Verified: appending EntryCreationAction to
+# assets/templates/integrity-lib.rs exited 0 before this block existed.
+check_absent_in_code pins 'hdk = "=0\.6' 'no superseded hdk 0.6.x pin in shipped code'
+check_absent_in_code pins 'hdi = "=0\.7' 'no superseded hdi 0.7.x pin in shipped code'
+check_absent_in_code pins 'ref=main-0\.6' 'no superseded holonix main-0.6 ref in shipped code'
+check_absent_in_code pins 'nodejs_22' 'no superseded nodejs_22 in shipped code'
+check_absent_in_code pins '@holochain/client": "\^0\.20' 'no superseded @holochain/client 0.20.x in shipped code'
+# Quoted forms only. The rc is named in two flake.nix comments that explain the
+# trap, which is documentation; a quoted "^0.700.0-rc.1" is a pin someone installs.
+# That exact defect shipped once in references/example-happ/package.json.
+check_absent_in_code pins '"[\^~]\{0,1\}0\.700\.0-rc' 'no rc-era pin in shipped code'
 
 # ---------------------------------------------------------------------------
 # 6. APIs removed in Holochain 0.7 must not appear
