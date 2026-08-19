@@ -39,7 +39,7 @@ Six fields, all defaulted, so `ChainQueryFilter::new()` means "every record, asc
 | `include_entries` | `bool` | Load entry content, not just actions. Default `false` |
 | `order_descending` | `bool` | Default is ascending. `.descending()` flips it |
 
-**Building the `entry_type` argument.** `#[hdk_entry_types]` expands to include `hdk_entry_types_name_registration`, which generates both `impl TryFrom<UnitEntryTypes> for EntryType` and `impl TryFrom<UnitEntryTypes> for AppEntryDef`. Either form works, and the target type decides which impl is used:
+**Building the `entry_type` argument.** `#[hdk_entry_types]` expands to include `hdk_entry_types_name_registration`, which generates both `impl TryFrom<UnitEntryTypes> for EntryType` and `impl TryFrom<UnitEntryTypes> for AppEntryDef`. Both impls are emitted by `hdk_derive`, in `hdk_derive-0.7.0/src/entry_types_name_registration.rs` (the `EntryType` one at line 184), not by `hdi`. They exist only in expanded code, so grepping `hdi` for them finds nothing. Either form works, and the target type decides which impl is used:
 
 ```rust
 .entry_type(UnitEntryTypes::Post.try_into()?)                    // -> EntryType
