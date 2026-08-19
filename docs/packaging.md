@@ -189,7 +189,7 @@ shellHook failure.
 | Version declarations drift apart | `check-versions.sh`, three in-tree and again against the tag | pull request and release |
 | The installer stops installing | smoke test running it for real into a scratch project | pull request and release |
 | An archive changes shape | extract-and-assert step | pull request and release |
-| A published checksum stops matching | two builds compared | manual, on change to the builder |
+| A published checksum stops matching | `check-reproducible.sh`, asserting the fixed epoch on every member | pull request and release |
 
 The pattern is that every gate has a negative probe. A gate that has never been
 observed failing is a gate nobody has tested.

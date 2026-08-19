@@ -76,7 +76,8 @@ jobs:
           mkdir -p /tmp/extract/.claude/skills
           tar -xzf dist/holochain-agent-skills.tar.gz -C /tmp/extract/.claude/skills
           test -f /tmp/extract/.claude/skills/holochain/SKILL.md
-          cd dist && sha256sum -c SHA256SUMS
+          ( cd dist && sha256sum -c SHA256SUMS )
+          sh scripts/check-reproducible.sh
 
       - name: Extract the changelog section for this version
         id: notes

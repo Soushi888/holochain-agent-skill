@@ -72,6 +72,13 @@ jobs:
           test -f /tmp/extract/.claude/skills/holochain/SKILL.md
           cd dist && sha256sum -c SHA256SUMS
 
+      # A checksum pinned in a consumer's Nix expression must survive a rebuild
+      # of the same commit. Asserted directly rather than by building twice and
+      # comparing: zip's timestamp granularity is two seconds, so back-to-back
+      # builds match even when the stamping is broken. See the script's header.
+      - name: Archives are reproducible
+        run: sh scripts/check-reproducible.sh
+
   nix:
     name: Nix flake builds and checks
     runs-on: ubuntu-latest
