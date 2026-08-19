@@ -1,0 +1,108 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (for a dry run without publishing)"
+        required: true
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Validate, build assets, publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # Everything below publishes something irreversible, so both gates run
+      # first. The version check is the one that matters here: a package whose
+      # SKILL.md declares a different version than its tag tells consumers they
+      # have something they do not, and nothing inside an installed skill can
+      # reveal it.
+      - name: Skill validator
+        run: sh scripts/validate-skill.sh
+
+      - name: Routing regression guard
+        run: sh scripts/eval/run-eval.sh
+
+      - name: Version declarations agree with the tag
+        run: sh scripts/check-versions.sh "${{ steps.tag.outputs.tag }}"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Build the installer binary
+        run: bun run build
+
+      - name: Installer smoke test
+        # A published installer that cannot install is the one defect this
+        # pipeline must never ship. Run it for real, against a scratch project,
+        # and assert the file landed.
+        run: |
+          mkdir -p /tmp/smoke/.claude
+          cd /tmp/smoke
+          node "$GITHUB_WORKSPACE/bin/install.mjs" install --yes
+          test -f /tmp/smoke/.claude/skills/holochain/SKILL.md
+
+      - name: Build release archives
+        run: sh scripts/build-release-assets.sh "${{ steps.tag.outputs.version }}"
+
+      - name: Verify archives extract to the documented shape
+        # The README tells people to run exactly this. If the archive root is
+        # not one directory per skill, that command silently produces a skill
+        # directory no agent scans.
+        run: |
+          mkdir -p /tmp/extract/.claude/skills
+          tar -xzf dist/holochain-agent-skills.tar.gz -C /tmp/extract/.claude/skills
+          test -f /tmp/extract/.claude/skills/holochain/SKILL.md
+          cd dist && sha256sum -c SHA256SUMS
+
+      - name: Extract the changelog section for this version
+        id: notes
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { capture = 1; next }
+            capture && /^## \[/     { exit }
+            capture                 { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          test -s /tmp/release-notes.md
+
+      - name: Publish to npm
+        if: github.event_name == 'push'
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create the GitHub release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          body_path: /tmp/release-notes.md
+          files: |
+            dist/holochain-agent-skills-${{ steps.tag.outputs.version }}.tar.gz
+            dist/holochain-agent-skills-${{ steps.tag.outputs.version }}.zip
+            dist/holochain-agent-skills.tar.gz
+            dist/SHA256SUMS

@@ -24,6 +24,73 @@ jobs:
       - name: Run routing regression guard
         run: sh scripts/eval/run-eval.sh
 
+      # The version lives in four places. Three of them are in the tree, so
+      # they can drift on any PR, not only at release time.
+      - name: Version declarations agree
+        run: sh scripts/check-versions.sh
+
+  package:
+    name: The tarball holds the skill and nothing else
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Build the installer binary
+        run: bun run build
+
+      # `files` in package.json is the only thing standing between a consumer
+      # and a .claude/skills/holochain/ full of book.toml, docs/ and CI config.
+      # Assert the contents rather than trusting the array.
+      - name: npm pack contains only the payload
+        run: |
+          npm pack --dry-run 2>&1 | sed 's/^npm notice *//' \
+            | grep -E '^[0-9.]+(B|kB|MB) ' | awk '{print $2}' > /tmp/files.txt
+          test -s /tmp/files.txt
+          if grep -vE '^(skills/|bin/|README\.md$|LICENSE$|package\.json$)' /tmp/files.txt; then
+            echo "the lines above are outside the shipped payload"
+            exit 1
+          fi
+          grep -q '^skills/holochain/SKILL.md$' /tmp/files.txt
+
+      - name: Installer installs, non-interactively
+        run: |
+          mkdir -p /tmp/smoke/.claude
+          cd /tmp/smoke
+          node "$GITHUB_WORKSPACE/bin/install.mjs" install --yes
+          test -f /tmp/smoke/.claude/skills/holochain/SKILL.md
+          test ! -e /tmp/smoke/.claude/skills/holochain/book.toml
+
+      - name: Release archives build and extract to the documented shape
+        run: |
+          sh scripts/build-release-assets.sh
+          mkdir -p /tmp/extract/.claude/skills
+          tar -xzf dist/holochain-agent-skills.tar.gz -C /tmp/extract/.claude/skills
+          test -f /tmp/extract/.claude/skills/holochain/SKILL.md
+          cd dist && sha256sum -c SHA256SUMS
+
+  nix:
+    name: Nix flake builds and checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: "experimental-features = nix-command flakes"
+
+      - name: nix flake check
+        run: nix flake check
+
+      - name: The skill derivation is rooted at the skill
+        run: |
+          out=$(nix build .#holochain --no-link --print-out-paths)
+          test -f "$out/SKILL.md"
+          bundle=$(nix build .#default --no-link --print-out-paths)
+          test -f "$bundle/holochain/SKILL.md"
+
   build-docs:
     name: mdBook builds
     runs-on: ubuntu-latest

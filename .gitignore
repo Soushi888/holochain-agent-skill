@@ -16,3 +16,4 @@ book/
 .worktrees/
 bin/
 node_modules/
+dist/
