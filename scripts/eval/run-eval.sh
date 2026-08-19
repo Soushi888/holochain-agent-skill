@@ -41,7 +41,7 @@ set -u
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$REPO_ROOT" || exit 2
 
-SKILL_MD="SKILL.md"
+SKILL_MD="skills/holochain/SKILL.md"
 CASES="scripts/eval/cases.tsv"
 
 if [ ! -f "$SKILL_MD" ]; then

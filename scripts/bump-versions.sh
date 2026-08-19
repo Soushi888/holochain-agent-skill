@@ -49,6 +49,7 @@ FILES=$(find . \( -name '*.md' -o -name '*.nix' -o -name '*.toml' -o -name '*.js
                  -o -name '*.yaml' -o -name '*.yml' \) -type f \
     ! -path './book/*' ! -path './MEMORY/*' ! -path './Plans/*' \
     ! -path './.local/*' ! -path './.git/*' ! -path './node_modules/*' \
+    ! -path './.worktrees/*' \
     ! -path './CHANGELOG.md' | sed 's|^\./||' | sort)
 
 BEFORE=$(mktemp) || exit 2

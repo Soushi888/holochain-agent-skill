@@ -14,38 +14,54 @@ A vanilla agent skill for Holochain hApp development, targeting **Holochain 0.7 
 
 ## Layout
 
+The repository separates the **shipped skill** from the **workshop around it**. Everything under
+`skills/` is what a consumer installs. Everything else exists to build, validate, document and
+release that payload, and must never end up in a consumer's `.claude/skills/` directory.
+
 ```
-SKILL.md                     Entry point: routing table, context file index, quick reference, toolchain currency table
-references/                  Reference material, loaded on demand
-  architecture.md              Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
-  progenitor.md                DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement, bootstrap auto-registration, deploy-time injection
-  patterns.md                  Entry types, link types, CRUD, update chain, validation, signals, HDK 0.7 API
-  scaffolding.md               Holonix setup, Nix flake, hc CLI commands, project scaffolding
-  access-control.md            Capability grants, cap claims, admin-only patterns, init() setup
-  cell-cloning.md              Clone cells, partitioned data, createCloneCell, clone_limit
-  error-handling.md            thiserror enums, WasmError, ExternResult patterns
-  testing.md                   Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, test organization
-  wind-tunnel.md               Performance/load testing with the wind-tunnel framework
-  client.md                    @holochain/client setup, callZome, signals, SvelteKit integration
-  deployment.md                Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
-  migration.md                 DNA migration, init_properties, carrying data across DNA versions
-  networking.md                Kitsune2 + iroh transport, NetworkConfig, bootstrap and relay, self-hosting a bootstrap server
-  membranes.md                 genesis_self_check, membrane proofs, AgentValidationPkg validation, memproof install flow
-  source-chain.md              query() and ChainQueryFilter, cell introspection, sys_time/random_bytes, validation receipts
-  debugging.md                 RUST_LOG and WASM_LOG, hc sandbox, hc-client admin calls and zome calls
-  troubleshooting.md           Literal error strings mapped to causes and fixes
-  frameworks/                  Effect and Svelte integration notes
-  workflows/                   Step-by-step guided sequences, routed from SKILL.md
-  example-happ/                A real, compiling 0.7 hApp. The ground truth for every code example
-assets/templates/            Real template files (flake.nix, Cargo.toml, happ.yaml, dna.yaml, zome lib.rs, sweettest harness)
-scripts/                     validate-skill.sh (CI gate), bump-versions.sh
+skills/holochain/            THE SHIPPED SKILL. Nothing outside this directory ships.
+  SKILL.md                     Entry point: routing table, context file index, quick reference, toolchain currency table
+  references/                  Reference material, loaded on demand
+    architecture.md              Coordinator/integrity split, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA
+    progenitor.md                DnaProperties struct, check_if_progenitor, coordinator guard, integrity enforcement, bootstrap auto-registration, deploy-time injection
+    patterns.md                  Entry types, link types, CRUD, update chain, validation, signals, HDK 0.7 API
+    scaffolding.md               Holonix setup, Nix flake, hc CLI commands, project scaffolding
+    access-control.md            Capability grants, cap claims, admin-only patterns, init() setup
+    cell-cloning.md              Clone cells, partitioned data, createCloneCell, clone_limit
+    error-handling.md            thiserror enums, WasmError, ExternResult patterns
+    testing.md                   Sweettest (Rust-native) setup, two-agent scenarios, await_consistency, test organization
+    wind-tunnel.md               Performance/load testing with the wind-tunnel framework
+    client.md                    @holochain/client setup, callZome, signals, SvelteKit integration
+    deployment.md                Kangaroo-Electron packaging, .webhapp bundling, CI/CD, versioning
+    migration.md                 DNA migration, init_properties, carrying data across DNA versions
+    networking.md                Kitsune2 + iroh transport, NetworkConfig, bootstrap and relay, self-hosting a bootstrap server
+    membranes.md                 genesis_self_check, membrane proofs, AgentValidationPkg validation, memproof install flow
+    source-chain.md              query() and ChainQueryFilter, cell introspection, sys_time/random_bytes, validation receipts
+    debugging.md                 RUST_LOG and WASM_LOG, hc sandbox, hc-client admin calls and zome calls
+    troubleshooting.md           Literal error strings mapped to causes and fixes
+    frameworks/                  Effect and Svelte integration notes
+    workflows/                   Step-by-step guided sequences, routed from SKILL.md
+    example-happ/                A real, compiling 0.7 hApp. The ground truth for every code example
+  assets/templates/            Real template files (flake.nix, Cargo.toml, happ.yaml, dna.yaml, zome lib.rs, sweettest harness)
+  LICENSE                      Apache-2.0, shipped with the skill so an installed copy carries its licence
+
+scripts/                     validate-skill.sh (CI gate), bump-versions.sh, install.ts, eval/
+nix/                         skill.nix (the derivation), mk-skills-hook.nix (the devShell fragment)
 docs/                        Requirements spec, roadmap, testing matrix. NOT loaded by the skill
+AGENTS.md                    Install instructions addressed to an agent handed the repo URL
+package.json                 npm packaging: `files`, `bin`, `agents`, the agent-skill keyword
+flake.nix                    Exposes the skill as a package plus lib.mkSkillsHook for consumers
+book.toml / SUMMARY.md       mdBook site over both the skill and docs/
 ```
+
+Paths inside `SKILL.md` are relative to `skills/holochain/`, so routing rows read
+`references/patterns.md`, not `skills/holochain/references/patterns.md`. Paths in this file,
+in `SUMMARY.md` and in the scripts are relative to the repo root and carry the full prefix.
 
 ## Routing Architecture
 
 `SKILL.md` is the entry point. It contains:
-1. A **Workflow Routing** table mapping natural-language triggers to `references/workflows/*.md` files
+1. A **Workflow Routing** table mapping natural-language triggers to `references/workflows/*.md` files (relative to the skill root)
 2. A **Context Files** table specifying which `references/*.md` file to load per topic
 3. **Quick Reference** and a dated **Toolchain currency** table
 
@@ -67,10 +83,11 @@ Exact pins (`=`) are required. Holochain is sensitive to minor version changes. 
 ## Maintaining the Skill
 
 - **`scripts/validate-skill.sh` is the gate.** It checks frontmatter, routing target resolution, orphaned markdown, relative links, version pin consistency, forbidden 0.6-era APIs, retirement of the old JS test harness, and leftover placeholder markers. CI runs it on every push and PR. Run it before committing. Read the script for the exact check names, since it scans for those names as literal strings and repeating them here would trip its own checks.
-- **`references/example-happ/` is the ground truth.** Every Rust example in the reference files must match an API shape that compiles there. Do not write API shapes from recall.
+- **`skills/holochain/references/example-happ/` is the ground truth.** Every Rust example in the reference files must match an API shape that compiles there. Do not write API shapes from recall.
 - **The stable scaffolder is authoritative for generated-code idiom.** Holonix `main-0.7` ships `hc-scaffold 0.700.0-rc.0`, whose output does not compile against the stable crates. Generated-code examples must match `holochain_scaffolding_cli` **v0.700.0 stable**, installed separately.
 - **No duplication across files.** Each pattern lives in one canonical file; `SKILL.md` routes to it.
 - **Workflows vs references.** Files in `references/workflows/` are step-by-step sequences; the other `references/*.md` files are reference material. Keep the roles distinct.
+- **Only `skills/` ships.** `npm pack --dry-run` is the check: if a file outside `skills/`, `bin/`, `README.md` or `LICENSE` appears in the tarball, the `files` array in `package.json` is wrong.
 - **docs/ is not part of the skill.** `docs/requirements.md`, `docs/roadmap.md` and `docs/testing.md` are project tracking.
 
 ## Key Architectural Concepts (for editing reference files accurately)

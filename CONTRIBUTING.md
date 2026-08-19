@@ -1,10 +1,10 @@
 # Contributing
 
-Thanks for considering a contribution to the Holochain Agent Skill. This is a documentation-only repository: a vanilla [Agent Skills Open Standard](https://agentskills.io) skill for Holochain hApp development. There is no Rust build and no TypeScript build for the skill itself. Every file is Markdown, YAML frontmatter, or a template file, except for the reference hApp under `references/example-happ/`, which is real Rust and TypeScript that compiles.
+Thanks for considering a contribution to the Holochain Agent Skill. This is a documentation-only repository: a vanilla [Agent Skills Open Standard](https://agentskills.io) skill for Holochain hApp development. There is no Rust build and no TypeScript build for the skill itself. Every file is Markdown, YAML frontmatter, or a template file, except for the reference hApp under `skills/holochain/references/example-happ/`, which is real Rust and TypeScript that compiles.
 
 ## What this repository is
 
-The skill is loaded by Claude Code (and other Agent Skills-compatible tools) when a user invokes `/holochain` or when Holochain-related work is detected. `SKILL.md` is the entry point: it routes to `references/workflows/*.md` for step-by-step sequences and to the other `references/*.md` files for reference material, loaded on demand rather than all at once.
+The skill is loaded by Claude Code (and other Agent Skills-compatible tools) when a user invokes `/holochain` or when Holochain-related work is detected. `skills/holochain/SKILL.md` is the entry point: it routes to `skills/holochain/references/workflows/*.md` for step-by-step sequences and to the other `skills/holochain/references/*.md` files for reference material, loaded on demand rather than all at once.
 
 The repository also generates a static documentation site with mdBook, built from `book.toml` and `SUMMARY.md`. GitHub Actions deploys it to GitHub Pages on every push to `main`.
 
@@ -12,11 +12,11 @@ For the full file layout and the key architectural concepts the skill teaches (c
 
 ## The hard rule: examples must compile
 
-Every Rust code example in this skill must match an API shape that actually compiles against `references/example-happ/`, the reference hApp. `references/example-happ/` is the ground truth for the skill: it is not sample text, it is a real Holochain 0.7 project.
+Every Rust code example in this skill must match an API shape that actually compiles against `skills/holochain/references/example-happ/`, the reference hApp. `skills/holochain/references/example-happ/` is the ground truth for the skill: it is not sample text, it is a real Holochain 0.7 project.
 
 **Never write an API shape from recall.** Holochain's HDK and HDI change in breaking ways between minor versions, and a plausible-looking function signature that used to be correct in an older release is exactly the kind of error this skill exists to prevent. Before adding or changing a code example:
 
-1. Find the equivalent pattern in `references/example-happ/` (or write it there first if it does not yet exist) and confirm it builds.
+1. Find the equivalent pattern in `skills/holochain/references/example-happ/` (or write it there first if it does not yet exist) and confirm it builds.
 2. Copy the actual shape into the reference file, not a remembered approximation of it.
 3. If you cannot verify a pattern against the example hApp, say so in the pull request rather than guessing.
 
@@ -62,13 +62,13 @@ Add `--dry-run` to preview the changes first. Bumping the pins is not the same a
 
 If you notice a version pin in this skill that no longer matches what a Holochain project actually needs (a newer `hdk`/`hdi` release, a new `holonix` ref, a new `@holochain/client` or `hc-spin` version), that is the single most useful and lowest-friction contribution you can make. Open an issue using the **Stale Version Pin** issue template, which asks for the component, the version the skill currently claims, the version that is actually current, and the registry URL (crates.io, npm, or the relevant git ref) proving it. You do not need to fix the pin yourself; a well-sourced report is enough for a maintainer to run `scripts/bump-versions.sh` and re-verify the surrounding prose.
 
-## `references/workflows/` vs. the other `references/*.md` files
+## `references/workflows/` vs. the other `skills/holochain/references/*.md` files
 
-Files under `references/workflows/` are step-by-step guided sequences: they walk through a task from start to finish (scaffolding a project, designing a data model, implementing a zome, and so on) and are what `SKILL.md`'s Workflow Routing table points to for a given natural-language trigger.
+Files under `skills/holochain/references/workflows/` are step-by-step guided sequences: they walk through a task from start to finish (scaffolding a project, designing a data model, implementing a zome, and so on) and are what `SKILL.md`'s Workflow Routing table points to for a given natural-language trigger.
 
-The other files directly under `references/` (`architecture.md`, `patterns.md`, `testing.md`, `scaffolding.md`, `access-control.md`, `cell-cloning.md`, `error-handling.md`, `wind-tunnel.md`, `client.md`, `deployment.md`, `migration.md`, `troubleshooting.md`, and the `frameworks/` subdirectory) are reference material: they explain a domain rather than walking through a task. `SKILL.md`'s Context Files table routes to these on demand.
+The other files directly under `skills/holochain/references/` (`architecture.md`, `patterns.md`, `testing.md`, `scaffolding.md`, `access-control.md`, `cell-cloning.md`, `error-handling.md`, `wind-tunnel.md`, `client.md`, `deployment.md`, `migration.md`, `troubleshooting.md`, and the `frameworks/` subdirectory) are reference material: they explain a domain rather than walking through a task. `SKILL.md`'s Context Files table routes to these on demand.
 
-Keep this distinction when adding new content. A new step-by-step sequence belongs in `references/workflows/`; a new domain explanation belongs alongside the existing reference files. Each pattern should live in exactly one canonical file, with `SKILL.md` routing to it, rather than being duplicated across files.
+Keep this distinction when adding new content. A new step-by-step sequence belongs in `skills/holochain/references/workflows/`; a new domain explanation belongs alongside the existing reference files. Each pattern should live in exactly one canonical file, with `SKILL.md` routing to it, rather than being duplicated across files.
 
 ## `docs/` is not part of the skill
 
@@ -101,7 +101,7 @@ If in doubt, ask yourself whether the instruction would still make sense to some
 
 1. Make your changes, keeping the "examples must compile" rule and the file-role distinctions above in mind.
 2. Run `sh scripts/validate-skill.sh` locally and confirm it exits `0`.
-3. If you touched a code example, confirm it still matches `references/example-happ/` (or update the example hApp alongside it).
+3. If you touched a code example, confirm it still matches `skills/holochain/references/example-happ/` (or update the example hApp alongside it).
 4. If you touched a version pin, use `scripts/bump-versions.sh`, not a hand edit.
 5. Open the pull request. The template will ask you to confirm the above; fill it in honestly rather than skipping items.
 

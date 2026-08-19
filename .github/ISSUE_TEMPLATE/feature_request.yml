@@ -20,7 +20,7 @@ body:
     id: proposal
     attributes:
       label: Proposed addition or change
-      description: What would you like added or changed? If this is new reference content, note whether it belongs in `references/workflows/` (a step-by-step sequence) or as reference material alongside the other `references/*.md` files.
+      description: What would you like added or changed? If this is new reference content, note whether it belongs in `skills/holochain/references/workflows/` (a step-by-step sequence) or as reference material alongside the other `skills/holochain/references/*.md` files.
     validations:
       required: true
 
