@@ -55,21 +55,31 @@ BEFORE=$(mktemp) || exit 2
 AFTER=$(mktemp) || exit 2
 trap 'rm -f "$BEFORE" "$AFTER"' EXIT INT TERM
 
+# `sed -i` is a GNU extension and is NOT POSIX. BSD and macOS sed read the next
+# argument as a backup suffix, so `sed -i -e ...` there treats `-e` as the suffix
+# and mangles every file the script touches. Edit through a temp file instead,
+# which behaves identically on both.
+sed_inplace() {
+    # sed_inplace <file> <sed-args...>
+    _f="$1"; shift
+    sed "$@" "$_f" > "$_f.bump.tmp" && mv "$_f.bump.tmp" "$_f"
+}
+
 apply() {
-    # apply <file>: rewrite every pin form in place
+    # apply <file>: rewrite every pin form
     f="$1"
-    sed -i \
+    sed_inplace "$f" \
         -e "s|hdk = \"=[0-9][0-9.]*\"|hdk = \"=$HDK\"|g" \
         -e "s|hdi = \"=[0-9][0-9.]*\"|hdi = \"=$HDI\"|g" \
         -e "s|hdk=[0-9][0-9.]*|hdk=$HDK|g" \
         -e "s|hdi=[0-9][0-9.]*|hdi=$HDI|g" \
         -e "s|holonix?ref=main-[0-9.]*|holonix?ref=$HOLONIX|g" \
-        -e "s|holonix ref=main-[0-9.]*|holonix ref=$HOLONIX|g" \
-        "$f"
-    [ -n "$NODE" ]    && sed -i -e "s|nodejs_[0-9][0-9]*|nodejs_$NODE|g" "$f"
-    [ -n "$CLIENT" ]  && sed -i -e "s|\(\"@holochain/client\": \"\^\)[0-9][0-9.]*|\1$CLIENT|g" \
-                                -e "s|@holochain/client   \^[0-9][0-9.x]*|@holochain/client   ^$CLIENT|g" "$f"
-    [ -n "$HC_SPIN" ] && sed -i -e "s|\(\"@holochain/hc-spin\": \"\^\)[0-9][0-9.]*|\1$HC_SPIN|g" "$f"
+        -e "s|holonix ref=main-[0-9.]*|holonix ref=$HOLONIX|g"
+    [ -n "$NODE" ]    && sed_inplace "$f" -e "s|nodejs_[0-9][0-9]*|nodejs_$NODE|g"
+    [ -n "$CLIENT" ]  && sed_inplace "$f" \
+        -e "s|\(\"@holochain/client\": \"\^\)[0-9][0-9.]*|\1$CLIENT|g" \
+        -e "s|@holochain/client   \^[0-9][0-9.x]*|@holochain/client   ^$CLIENT|g"
+    [ -n "$HC_SPIN" ] && sed_inplace "$f" -e "s|\(\"@holochain/hc-spin\": \"\^\)[0-9][0-9.]*|\1$HC_SPIN|g"
     return 0
 }
 
