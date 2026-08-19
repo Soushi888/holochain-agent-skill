@@ -3,8 +3,9 @@
 #
 # Every consumer of an agent skill writes the same twelve lines of rsync glue,
 # and gets the same two things wrong: forgetting that Nix store paths are
-# read-only (so `rsync -a` copies that mode and the NEXT write fails with
-# EACCES), and hardcoding one harness path. This function is that glue, once.
+# read-only (so `rsync -a` copies that mode and a later write into the
+# materialised tree fails with EACCES), and hardcoding one harness path. This
+# function is that glue, once.
 #
 # Usage from a consumer flake:
 #
@@ -41,8 +42,10 @@ in
   # Agent skills, materialised from the Nix store.
   #
   # --chmod=u+w because store paths are read-only and `rsync -a` preserves that
-  # mode on the copy. Without it the next write into the target directory fails
-  # with "Permission denied (13)", which surfaces as a broken shellHook on the
-  # SECOND `nix develop` rather than the first.
+  # mode on the copy. Measured without it: the materialised tree comes out
+  # dr-xr-xr-x / -r--r--r--, and a later `mkdir` inside it fails with
+  # "Permission denied". Repeating the same rsync still works, so the symptom
+  # never appears where it was caused: it appears at whatever writes into that
+  # directory next, which is why it reads as an unrelated shellHook failure.
   ${lib.concatMapStrings perSkill skills}
 ''
