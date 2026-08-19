@@ -1,0 +1,59 @@
+{
+  "name": "holochain-agent-skills",
+  "version": "1.0.0",
+  "description": "Agent skills for Holochain hApp development on Holochain 0.7: architecture, zome patterns, scaffolding, Sweettest, client integration and deployment.",
+  "keywords": [
+    "agent-skill",
+    "agent-skills",
+    "agentskills",
+    "holochain",
+    "hdk",
+    "hdi",
+    "claude-code",
+    "copilot",
+    "cursor",
+    "opencode",
+    "gemini-cli"
+  ],
+  "homepage": "https://soushi888.github.io/holochain-agent-skills/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Soushi888/holochain-agent-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Soushi888/holochain-agent-skills/issues"
+  },
+  "license": "Apache-2.0",
+  "author": "soushi888",
+  "type": "module",
+  "bin": {
+    "holochain-skills": "bin/install.mjs"
+  },
+  "files": [
+    "skills",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "agents": [
+    {
+      "name": "holochain",
+      "path": "./skills/holochain"
+    }
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "bun build scripts/install.ts --target=node --outfile bin/install.mjs",
+    "validate": "sh scripts/validate-skill.sh",
+    "eval": "sh scripts/eval/run-eval.sh",
+    "check-versions": "sh scripts/check-versions.sh",
+    "docs": "mdbook build",
+    "prepack": "bun run build"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

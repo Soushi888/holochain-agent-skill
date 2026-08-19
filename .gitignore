@@ -14,3 +14,5 @@ book/
 
 # PAI worktrees
 .worktrees/
+bin/
+node_modules/
