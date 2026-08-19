@@ -19,6 +19,11 @@ jobs:
       - name: Run skill validator
         run: ./scripts/validate-skill.sh -v
 
+      # A regression guard nobody runs is not a guard. This is a lexical floor
+      # (65%), not an accuracy metric; see scripts/eval/README.md.
+      - name: Run routing regression guard
+        run: sh scripts/eval/run-eval.sh
+
   build-docs:
     name: mdBook builds
     runs-on: ubuntu-latest
