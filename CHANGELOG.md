@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.0.0] - 2026-08-17
+## [1.0.0] - 2026-08-19
 
 First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 
@@ -26,6 +26,7 @@ First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 - `references/membranes.md`: join-time gating. `genesis_self_check`, `GenesisSelfCheckDataV2`, membrane proofs in `AgentValidationPkg` validation, the deferred `provideMemproofs` flow and the `awaiting_memproofs` app status
 - `references/source-chain.md`: `query()` and `ChainQueryFilter` including the hash-bounded efficiency cliff, cell introspection across `dna_info` / `zome_info` / `agent_info` / `call_info`, `sys_time` and `random_bytes`, and validation receipts
 - `references/debugging.md`: reading a live conductor. `RUST_LOG` versus `WASM_LOG`, the `hc sandbox` subcommand set, and the `hc-client` admin and zome-call surface
+- `references/frameworks/`: Effect and Svelte integration notes for the two frontend stacks the skill is used with
 - App authentication tokens and the admin install surface in `references/client.md`: `issueAppAuthenticationToken`, `attachAppInterface`, `installApp` with `roles_settings`, and `authorizeSigningCredentials`
 
 ### Changed
@@ -43,6 +44,10 @@ First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 - Corrected the cloning prerequisite in `references/cell-cloning.md` and `references/architecture.md`. `deferred: true` is not required for a clonable role, and the conductor ignores `deferred` outright: `AppBundle::resolve_cell` destructures `Create { .. }` without reading it. `strategy: clone_only` is the setting that leaves a role unprovisioned, and assembling `AppInfo` then reaches `unimplemented!()` in `holochain_conductor_api-0.7.0` (`src/app_interface.rs` line 548). Reported by @AlchemicalSpiralizer in #2
 - Removed stale `HDK 0.6` labels from `SKILL.md` and corrected `await_consistency_60s`, which does not exist, to `await_consistency`
 - Documented why a bare `cargo install holochain_scaffolding_cli` installs the wrong tool: crates.io orders `0.4000.4` above `0.700.0` by semver, so the version must be pinned explicitly
+- **`scripts/validate-skill.sh` could not see `assets/templates/` or `references/example-happ/`.** Both were absent from the file inventory the forbidden-API corpus was built from, and the pin checks excluded `assets/` and listed no `*.rs`. A template could carry an API removed in 0.7, or a stale `hdk = "=0.6.1"` pin, and the gate still exited 0. Templates are the files users copy, so this was the worst place for the gate to be blind. A `SHIPPED_CODE` inventory now feeds the same checks, and the coverage is falsified by injection in four places
+- `scripts/bump-versions.sh` used `sed -i`, a GNU extension, while its header claimed POSIX sh. On BSD and macOS, `sed -i -e` reads `-e` as a backup suffix and corrupts every file the script touches. Replaced with a portable temp-file helper
+- `scripts/eval/run-eval.sh` existed but nothing ran it. It is now a CI step
+- `references/networking.md` presented `NetworkConfig`'s Rust `Default` impl as if it were a serde default. `bootstrap_url` and `relay_url` carry no `#[serde(default)]`, so omitting the whole `network:` block works while a partial block without both URLs fails at startup with `missing field bootstrap_url`
 - Corrected `authorizeSigningCredentials` in `references/client.md` to the 0.21 tagged union `{ type: "listed", value: [[zome, fn]] }`, replacing the 0.20-era `GrantedFunctionsType` object form, and `listCapabilityGrants` to pass the required `include_revoked`
 
 ## [0.2.0] — 2026-05-15
