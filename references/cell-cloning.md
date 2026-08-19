@@ -84,7 +84,7 @@ await appClient.enableCloneCell({ clone_cell_id: clonedCellId });
 - Each clone's network seed must be unique — using the same seed creates the same network
 - Cloned cells share the same WASM binary but have separate source chains and DHTs
 - `deferred: true` is not required for clonable roles: a provisioned role can be cloned, as Volla Messages does in production with `clone_limit: 100`
-- `deferred` is in fact ignored on install. `AppBundle::resolve_cell` destructures `Create { .. }` without reading it, so the role is provisioned either way (`holochain_types-0.6.1/src/app/app_bundle.rs`)
-- Avoid `strategy: clone_only`. It is the one setting that leaves a role unprovisioned, and assembling `AppInfo` then reaches `unimplemented!()` in `holochain_conductor_api-0.6.1/src/app_interface.rs` (line 491), panicking the conductor
+- `deferred` is in fact ignored on install. `AppBundle::resolve_cell` destructures `Create { .. }` without reading it, so the role is provisioned either way (`holochain_types-0.7.0/src/app/app_bundle.rs`)
+- Avoid `strategy: clone_only`. It is the one setting that leaves a role unprovisioned, and assembling `AppInfo` then reaches `unimplemented!()` in `holochain_conductor_api-0.7.0/src/app_interface.rs` (line 548), panicking the conductor
 
 **Reference:** [developer.holochain.org/build/cell-cloning/](https://developer.holochain.org/build/cell-cloning/)

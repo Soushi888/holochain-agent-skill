@@ -266,7 +266,7 @@ roles:
   - name: secondary_role
     provisioning:
       strategy: create
-      deferred: true          # provisioned later by the app
+      deferred: false         # provisioned on install, clonable at runtime
     dna:
       bundled: "./secondary.dna"
       modifiers:
@@ -274,5 +274,7 @@ roles:
       clone_limit: 10         # allow up to 10 clones of this role
 ```
 
-**`deferred: true`** — the cell is not created on install; the app creates it programmatically when needed.
-**`clone_limit`** — enables cell cloning for this role (see `cell-cloning.md`).
+**`deferred`** — ignored by the conductor on install. `AppBundle::resolve_cell` destructures
+`Create { .. }` without reading it, so a `create` role is always provisioned. Leave it `false`.
+**`clone_limit`** — enables cell cloning for this role, and does not require an unprovisioned base
+cell (see `cell-cloning.md`).

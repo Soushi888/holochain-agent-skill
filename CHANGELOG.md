@@ -40,6 +40,7 @@ First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 
 - Documented that holonix `main-0.7` bundles `hc-scaffold 0.700.0-rc.0`, whose generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins, with each symptom and its fix
 - Corrected `manifest_version` from `"1"` to `"0"` in YAML examples
+- Corrected the cloning prerequisite in `references/cell-cloning.md` and `references/architecture.md`. `deferred: true` is not required for a clonable role, and the conductor ignores `deferred` outright: `AppBundle::resolve_cell` destructures `Create { .. }` without reading it. `strategy: clone_only` is the setting that leaves a role unprovisioned, and assembling `AppInfo` then reaches `unimplemented!()` in `holochain_conductor_api-0.7.0` (`src/app_interface.rs` line 548). Reported by @AlchemicalSpiralizer in #2
 - Removed stale `HDK 0.6` labels from `SKILL.md` and corrected `await_consistency_60s`, which does not exist, to `await_consistency`
 - Documented why a bare `cargo install holochain_scaffolding_cli` installs the wrong tool: crates.io orders `0.4000.4` above `0.700.0` by semver, so the version must be pinned explicitly
 - Corrected `authorizeSigningCredentials` in `references/client.md` to the 0.21 tagged union `{ type: "listed", value: [[zome, fn]] }`, replacing the 0.20-era `GrantedFunctionsType` object form, and `listCapabilityGrants` to pass the required `include_revoked`
