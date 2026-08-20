@@ -346,6 +346,7 @@ check_absent_in_code api07 'LinkQuery::new('          'LinkQuery::new (a LinkTyp
 check_absent_in_code api07 'SweetConductorBatch::from_config(' 'SweetConductorBatch::from_config (0.7: standard(n) / from_config_rendezvous(n, cfg))'
 check_absent_in_code api07 'delete_link(link.create_link_hash)' 'delete_link with one argument (0.7: delete_link(hash, GetOptions::default()))'
 check_absent_in_code api07 'consistency(&\['          'await_consistency(&[&cell, ..]) yields Item = &&SweetCell; drop the outer & or pass owned cells'
+check_absent_in_code api07 'send_remote_signal(recipient' 'send_remote_signal takes (input, Vec<AgentPubKey>): payload first, recipients second'
 
 # ---------------------------------------------------------------------------
 # 7. Tryorama: retired in favour of Sweettest

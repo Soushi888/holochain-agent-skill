@@ -389,7 +389,10 @@ pub fn post_commit(committed_actions: Vec<SignedActionHashed>) {
 
 ```rust
 // Sender:
-send_remote_signal(recipient_pubkey, SerializedBytes::try_from(MySignal::Ping)?)?;
+// Signature is send_remote_signal(input, agents): payload FIRST, then a Vec of
+// recipients. Passing a bare AgentPubKey, or the two the other way round, does
+// not compile.
+send_remote_signal(MySignal::Ping, vec![recipient_pubkey])?;
 
 // Receiver callback:
 #[hdk_extern]
