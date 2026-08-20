@@ -121,7 +121,7 @@ Verified against npm and each repo's `Cargo.toml` on **2026-08-17**. Version num
 |---|---|---|
 | `@holochain-open-dev/elements`, `/utils`, `/file-storage` | 0.700.0, published 2026-07-31 to 08-13 | Safe to use |
 | `@holochain-open-dev/profiles` | 0.701.0, published 2026-08-11 | Safe to use |
-| `@holochain-open-dev/signals` | stable is 0.601.0 (2026-04-27); only a `dev` tag at 0.700.0-dev.0 | Pre-release only, do not treat as settled |
+| `@holochain-open-dev/signals` | stable is 0.601.0 (2026-01-26); only a `dev` tag at 0.700.0-dev.0 (2026-04-27) | Pre-release only, do not treat as settled |
 | Wind Tunnel | latest tag `v0.7.1` pins hdk **0.6.3**; branch `main` pins hdk 0.7.0 | Track `main`. See `references/wind-tunnel.md` |
 | hREA | `happ-0.4.0-beta` pins hdk **0.6.1** | Still 0.6 generation. Do not assume 0.7 compatibility |
 | Moss / Weave (`@theweave/api`) | 0.7.0-dev.2, dev channel only | Pre-release |
