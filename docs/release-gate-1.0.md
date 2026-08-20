@@ -43,11 +43,13 @@ Completed 2026-08-17. Every row records the command run and its result. Rows tha
 
 | Check | Result | Evidence |
 |---|---|---|
-| Live end-to-end on a model that did not write the skill | PASS | GLM 5.3 via opencode, given only the installed skill and a task to add a `Comment` entry type with CRUD, validation and links. Wrote 6 files, then `cargo build --release --target wasm32-unknown-unknown` exit 0 on first try |
+| Live end-to-end, run A (2026-08-17) | PASS, with a caveat | GLM 5.3 via opencode, task: add a `Comment` entry type with CRUD, validation and a `PostToComments` link. Wrote 6 files, then `cargo build --release --target wasm32-unknown-unknown` exit 0 on first try. **Caveat:** described at the time as isolated on the strength of `--pure`. It was not. `--pure` disables plugins only; the `instructions` array still loaded eleven local files. The compile evidence stands; the routing and idiom evidence is weakened, because a context-loaded agent is not the naive reader the check describes |
+| Live end-to-end, run B (2026-08-19) | PASS, with the same caveat | A later, separate run against the iteration-3 content: membrane gating plus a source-chain query, `E2E_WASM_BUILD_EXIT=0`, `posts_integrity.wasm` 1732446 bytes and `posts.wasm` 3123616 bytes. Same isolation defect as run A. These are two distinct runs on two different task sets, not two descriptions of one run |
+| Live end-to-end under verified isolation | OPEN | The isolation recipe (`HOME` + `XDG_CONFIG_HOME` + `XDG_DATA_HOME` overridden onto a sandbox home) was established on 2026-08-19 and verified by behaviour rather than self-report. Re-running runs A and B under it is tracked as C46 and C47 in the project ISA. Not a 1.0 blocker: the compile evidence is unaffected, and what is open is how much the skill alone contributed to the routing |
 | End-to-end output uses current idiom | PASS | `try_from_action` present, zero `WrongActionError`, `LinkQuery::try_new` and `GetStrategy` used, zero removed-in-0.7 APIs |
 | Routing regression guard | PASS | `scripts/eval/run-eval.sh`, 27/39 (69.2%) against a 65% floor. This is a lexical coverage guard, not an accuracy metric. See `scripts/eval/README.md` |
 | Multi-conductor network test on real infrastructure | N/A | Requires a deployed bootstrap and relay. Out of scope for a documentation skill; the two-agent Sweettest covers DHT propagation in-process |
-| Cross-tool portability (other AI clients) | N/A | Deferred to v2 in `docs/requirements.md`. v1.0 targets Claude Code. The one cross-model check that was run is the GLM 5.3 end-to-end above |
+| Cross-tool portability (other AI clients) | N/A | Deferred to v2 in `docs/requirements.md`. v1.0 targets Claude Code. The cross-model checks that were run are the two GLM 5.3 end-to-ends above |
 | Windows support | N/A | Holochain scaffolding refuses to set up Nix on Windows (`ScaffoldError::NixSetupError`). Upstream limitation, not a skill gap |
 
 ## Community readiness
