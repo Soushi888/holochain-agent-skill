@@ -337,6 +337,16 @@ check_absent_in_code api07 'db_sync_strategy'         'db_sync_strategy (0.7: db
 check_absent_in_code api07 'chc_url'                  'chc_url conductor config (removed in 0.7)'
 check_absent_in_code api07 'ActionBuilderCommon'      'ActionBuilderCommon (removed in 0.7)'
 
+# Names that still exist in 0.7 but are called with the wrong shape. A blocklist
+# cannot check arity, so it blocks the call form instead. Each of these shipped
+# past the list above at least once.
+check_absent_in_code api07 'GetLinksInputBuilder'     'GetLinksInputBuilder (0.7: get_links(LinkQuery::try_new(..)?, GetStrategy))'
+check_absent_in_code api07 'ZomeCallResponse::Error'  'ZomeCallResponse::Error (no such variant; 0.7 has Ok/AuthenticationFailed/Unauthorized/NetworkError/CountersigningSession)'
+check_absent_in_code api07 'LinkQuery::new('          'LinkQuery::new (a LinkTypes variant is TryFrom, not From: use try_new(..)?)'
+check_absent_in_code api07 'SweetConductorBatch::from_config(' 'SweetConductorBatch::from_config (0.7: standard(n) / from_config_rendezvous(n, cfg))'
+check_absent_in_code api07 'delete_link(link.create_link_hash)' 'delete_link with one argument (0.7: delete_link(hash, GetOptions::default()))'
+check_absent_in_code api07 'consistency(&\['          'await_consistency(&[&cell, ..]) yields Item = &&SweetCell; drop the outer & or pass owned cells'
+
 # ---------------------------------------------------------------------------
 # 7. Tryorama: retired in favour of Sweettest
 #    One pointer to the community fork is permitted; instructions are not.
