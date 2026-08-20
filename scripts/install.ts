@@ -35,6 +35,13 @@ type Target = {
   project: string;
   /** Path relative to $HOME, or null when the harness has no global scope. */
   global: string | null;
+  /**
+   * Project-scope presence markers, for a harness whose skills path sits under
+   * a directory too generic to mean anything on its own. Any one of them
+   * existing counts as detection. Omitted wherever the harness's own
+   * dot-directory is the signal.
+   */
+  projectMarkers?: string[];
   /** Where this path was verified. */
   source: string;
 };
@@ -66,6 +73,17 @@ const TARGETS: Target[] = [
     label: "GitHub Copilot",
     project: ".github/skills",
     global: ".copilot/skills",
+    // `.github/` alone is not a Copilot signal: almost every repository on
+    // GitHub has one for workflows or issue templates, and deriving the marker
+    // from the skills path installed this skill into `.github/skills/` in all of
+    // them. Measured in this very repository, which has no `.claude/`: the
+    // installer reported "Detected GitHub Copilot" and would have written there.
+    projectMarkers: [
+      ".github/skills",
+      ".github/copilot-instructions.md",
+      ".github/instructions",
+      ".github/prompts",
+    ],
     source: "docs.github.com/en/copilot/concepts/agents/about-agent-skills",
   },
   {
@@ -80,7 +98,7 @@ const TARGETS: Target[] = [
     label: "Cursor",
     project: ".cursor/skills",
     global: ".cursor/skills",
-    source: "the `skills` npm package README's supported-agent path list",
+    source: "cursor.com/docs/skills, which also names .agents/skills and reads .claude/skills for compatibility",
   },
 ];
 
@@ -147,7 +165,8 @@ function detect(opts: Options): Target[] {
   return TARGETS.filter((t) => {
     const rel = opts.global ? t.global : t.project;
     if (!rel) return false;
-    return existsSync(join(base, markerDir(rel)));
+    const markers = !opts.global && t.projectMarkers ? t.projectMarkers : [markerDir(rel)];
+    return markers.some((m) => existsSync(join(base, m)));
   });
 }
 
@@ -232,11 +251,18 @@ function installOne(skill: string, dest: string, opts: Options): void {
 
   // lstat, not existsSync: a broken symlink from an earlier --link install is
   // invisible to existsSync and would make the write below fail with EEXIST.
+  let replaced = false;
   try {
     lstatSync(target);
-    rmSync(target, { recursive: true, force: true });
+    replaced = true;
   } catch {
     // nothing there, which is the normal first install
+  }
+  if (replaced) {
+    // Say so in the output. Prompting is not an option here (the primary caller
+    // is an agent with no TTY, and a prompt is a hang), but silently deleting a
+    // directory someone may have hand-edited is worse than a noisy line.
+    rmSync(target, { recursive: true, force: true });
   }
 
   if (opts.link) {
@@ -255,7 +281,8 @@ function installOne(skill: string, dest: string, opts: Options): void {
     });
   }
 
-  console.log(`  ${opts.link ? "linked" : "installed"} ${skill} -> ${target}`);
+  const verb = opts.link ? "linked" : "installed";
+  console.log(`  ${replaced ? `replaced (existing contents deleted), ${verb}` : verb} ${skill} -> ${target}`);
 }
 
 function usage(): void {

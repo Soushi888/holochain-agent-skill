@@ -235,8 +235,12 @@ EXPECT_HOLONIX="main-0.7"
 EXPECT_NODE="nodejs_24"
 EXPECT_CLIENT="0.21"
 
-if [ -f SKILL.md ]; then
-    DECLARED=$(sed -n 's/.*holochain-versions:[[:space:]]*"\{0,1\}\(.*\)/\1/p' SKILL.md | head -n 1)
+# `$SKILL_MD`, not a bare `SKILL.md`. The skill moved to `skills/holochain/` and
+# this test kept looking at the repository root, where no SKILL.md exists, so the
+# whole block silently skipped and even the hdk/hdi assertions stopped running.
+# Caught by seeding `holonix ref=main-0.8` and watching the run still exit 0.
+if [ -f "$SKILL_MD" ]; then
+    DECLARED=$(sed -n 's/.*holochain-versions:[[:space:]]*"\{0,1\}\(.*\)/\1/p' "$SKILL_MD" | head -n 1)
     case "$DECLARED" in
         *"hdk=$EXPECT_HDK"*) pass pins "frontmatter declares hdk=$EXPECT_HDK" ;;
         *) fail pins "SKILL.md frontmatter does not declare hdk=$EXPECT_HDK (got: ${DECLARED:-none})" ;;
@@ -244,6 +248,10 @@ if [ -f SKILL.md ]; then
     case "$DECLARED" in
         *"hdi=$EXPECT_HDI"*) pass pins "frontmatter declares hdi=$EXPECT_HDI" ;;
         *) fail pins "SKILL.md frontmatter does not declare hdi=$EXPECT_HDI (got: ${DECLARED:-none})" ;;
+    esac
+    case "$DECLARED" in
+        *"holonix ref=$EXPECT_HOLONIX"*) pass pins "frontmatter declares holonix ref=$EXPECT_HOLONIX" ;;
+        *) fail pins "SKILL.md frontmatter does not declare holonix ref=$EXPECT_HOLONIX (got: ${DECLARED:-none})" ;;
     esac
 fi
 
@@ -300,6 +308,45 @@ check_absent_in_code() {
         pass "$1" "$3"
     fi
 }
+
+# EXPECT_HOLONIX, EXPECT_NODE and EXPECT_CLIENT were declared beside
+# EXPECT_HDK/EXPECT_HDI and then never read, so three of the five pins this
+# section names had no check at all. holonix is asserted against the frontmatter
+# above; these two work the other way round from the named-value checks below.
+# Those forbid the superseded versions somebody thought of. These forbid every
+# OTHER version, including the ones nobody has thought of yet, so a bump that
+# misses one spelling of a pin cannot pass. Measured: the
+# `@holochain/client 0.21.0` line in the Quick Reference is plain text, not the
+# quoted JSON form, and bump-versions.sh did not touch it.
+check_only_version() {
+    # check_only_version <label> <ERE to find> <ERE that is allowed> <explanation>
+    # Whole lines first, so the legacy-ok escape hatch still works. Extracting
+    # occurrences with -o before filtering would throw the marker away, and a
+    # deliberate historical mention would be indistinguishable from drift.
+    hits=$(
+        {
+            grep -rEh --include='*.md' --include='*.nix' --include='*.toml' \
+                --include='*.json' --include='*.yaml' --include='*.yml' \
+                --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
+                --exclude-dir=.local --exclude-dir=.git --exclude-dir=node_modules \
+                --exclude-dir=.worktrees --exclude-dir=dist --exclude=CHANGELOG.md \
+                "$2" . 2>/dev/null
+            grep -Eh "$2" "$CODE_LINES" 2>/dev/null
+        } | grep -v 'legacy-ok' | grep -Eo "$2" | grep -Ev "$3" | sort -u
+    )
+    if [ -n "$hits" ]; then
+        printf 'FAIL  [%s] %s\n' "$1" "$4"
+        printf '%s\n' "$hits" | sed 's/^/        /'
+        FAILURES=$((FAILURES + 1))
+    else
+        pass "$1" "$4"
+    fi
+}
+
+check_only_version pins 'nodejs_[0-9]+' "^$EXPECT_NODE\$" \
+    "every nodejs pin reads $EXPECT_NODE"
+check_only_version pins '@holochain/client[^0-9]{0,12}[0-9]+\.[0-9]+' "$EXPECT_CLIENT" \
+    "every @holochain/client pin reads $EXPECT_CLIENT.x"
 
 check_absent pins 'hdk = "=0\.6' 'no superseded hdk 0.6.x pin'
 check_absent pins 'hdi = "=0\.7' 'no superseded hdi 0.7.x pin'
