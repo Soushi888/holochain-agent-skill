@@ -91,7 +91,7 @@ Scaffold:      hc scaffold entry-type MyEntry  |  hc scaffold link-type AgentToM
 
 ### Toolchain currency
 
-Verified against live registries and git refs on **2026-08-17**. Re-verify before trusting these past a Holochain minor release.
+Verified against live registries and git refs on **2026-08-20**. Re-verify before trusting these past a Holochain minor release.
 
 | Component | Current | Source |
 |---|---|---|

@@ -65,6 +65,22 @@ jobs:
           node "$GITHUB_WORKSPACE/bin/install.mjs" install --yes
           test -f /tmp/smoke/.claude/skills/holochain/SKILL.md
 
+      # validate.yml owns this assertion, and validate.yml does not run on tag
+      # pushes. Without it here, a `files` regression on the tagged commit
+      # reaches npm with nothing having looked inside the tarball. It is the
+      # only guard between a consumer and a .claude/skills/holochain/ full of
+      # book.toml, docs/ and CI config, so it runs on both paths.
+      - name: npm pack contains only the payload
+        run: |
+          npm pack --dry-run 2>&1 | sed 's/^npm notice *//' \
+            | grep -E '^[0-9.]+(B|kB|MB) ' | awk '{print $2}' > /tmp/files.txt
+          test -s /tmp/files.txt
+          if grep -vE '^(skills/|bin/|README\.md$|LICENSE$|package\.json$)' /tmp/files.txt; then
+            echo "the lines above are outside the shipped payload"
+            exit 1
+          fi
+          grep -q '^skills/holochain/SKILL.md$' /tmp/files.txt
+
       - name: Build release archives
         run: sh scripts/build-release-assets.sh "${{ steps.tag.outputs.version }}"
 

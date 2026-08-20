@@ -49,14 +49,20 @@ If the validator flags a new file you added as an orphan, that means it is not r
 
 ## Bumping version pins
 
-Holochain is sensitive to minor version changes, so this skill pins exact versions (`hdk = "=0.7.0"`, not `hdk = "0.7"`). **Never hand-edit a version pin.** Use `scripts/bump-versions.sh`, which rewrites every occurrence across the skill consistently:
+Holochain is sensitive to minor version changes, so this skill pins exact versions (`hdk = "=0.9.9"`, not `hdk = "0.7"`). **Never hand-edit a version pin.** Use `scripts/bump-versions.sh`, which rewrites every occurrence across the skill consistently:
 
 ```bash
 scripts/bump-versions.sh --hdk 0.7.1 --hdi 0.8.1 --holonix main-0.7 \
-  --node 24 --client 0.21.1 --hc-spin 0.700.1
+  --node 24 --client 0.21.1 --hc-spin 0.900.0
 ```
 
 Add `--dry-run` to preview the changes first. Bumping the pins is not the same as making the content correct: after running the script, you must run `scripts/validate-skill.sh`, which fails if any surviving code example still teaches an API that the new version removed. A green pin bump with a red validator means the skill claims a version it does not actually teach, and that pull request will not be merged as-is.
+
+### Release tooling needs GNU coreutils
+
+`scripts/validate-skill.sh`, `scripts/bump-versions.sh` and `scripts/check-versions.sh` are portable POSIX `sh` and run anywhere. The release scripts are not. `scripts/build-release-assets.sh` uses `tar --sort=name --owner --group --numeric-owner` and `sha256sum`, and `scripts/check-reproducible.sh` parses `tar -tvzf` output by field position. All of those are GNU behaviour. On macOS the bundled `bsdtar` has no `--sort` and there is no `sha256sum`, only `shasum -a 256`, so both scripts fail immediately rather than producing a wrong archive.
+
+This does not affect a release, which runs on `ubuntu-latest`. It affects a maintainer building the archives locally before tagging. On macOS, `brew install coreutils gnu-tar` and put their `gnubin` directories on `PATH` first.
 
 ## Reporting a stale version pin
 
