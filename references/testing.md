@@ -89,10 +89,7 @@ use std::path::Path;
 #[tokio::test(flavor = "multi_thread")]
 async fn two_agents_can_share_entries() {
     // 1. Create two conductors
-    let mut conductors = SweetConductorBatch::from_config(
-        2,
-        SweetConductorConfig::standard(),
-    ).await;
+    let mut conductors = SweetConductorBatch::standard(2).await;
 
     // 2. Load DNA bundle
     let dna = SweetDnaFile::from_bundle(Path::new("workdir/my.dna")).await.unwrap();
@@ -111,7 +108,7 @@ async fn two_agents_can_share_entries() {
         .await;
 
     // 6. Wait for DHT consistency before any cross-agent read
-    await_consistency(&[&alice_cell, &bob_cell]).await.unwrap();
+    await_consistency([&alice_cell, &bob_cell]).await.unwrap();
 
     // 7. Bob reads the entry
     let bob_zome = bob_cell.zome("my_coordinator");
@@ -129,13 +126,13 @@ Every cross-agent read must be preceded by it:
 
 ```rust
 // After any write, before cross-agent reads:
-await_consistency(&[&alice_cell, &bob_cell]).await.unwrap();
+await_consistency([&alice_cell, &bob_cell]).await.unwrap();
 
 // Custom timeout in seconds (default is 60s):
-await_consistency_s(30, &[&alice_cell, &bob_cell]).await.unwrap();
+await_consistency_s(30, [&alice_cell, &bob_cell]).await.unwrap();
 
 // Instant non-waiting check:
-check_consistency(&[&alice_cell, &bob_cell]).await.unwrap();
+check_consistency([&alice_cell, &bob_cell]).await.unwrap();
 ```
 
 `await_consistency` polls every 500ms, comparing all peers' DHT databases at the op level until every op is integrated across all nodes.
@@ -396,7 +393,7 @@ conductor
 conductor.declare_full_storage_arcs(cell.dna_hash()).await;
 
 // Check consistency without blocking (instant snapshot)
-check_consistency(&[&alice_cell, &bob_cell]).await.unwrap();
+check_consistency([&alice_cell, &bob_cell]).await.unwrap();
 
 // Drop and restart signaling server (simulates network partition)
 let rendezvous = SweetLocalRendezvous::new_raw().await;
@@ -508,7 +505,7 @@ authenticate_app_ws_client(app_sender.clone(), admin_port, "my-app".to_string())
 
 | Symptom | Root Cause | Fix |
 |---------|-----------|-----|
-| Bob can't find Alice's entry | Missing `await_consistency` | Add `await_consistency(&[&alice_cell, &bob_cell]).await.unwrap()` |
+| Bob can't find Alice's entry | Missing `await_consistency` | Add `await_consistency([&alice_cell, &bob_cell]).await.unwrap()` |
 | Compilation error on `call()` | Missing feature flag | Add `features = ["test_utils"]` to holochain dev-dep |
 | Timeout in `await_consistency` | Conductors not networked | Call `conductors.exchange_peer_info().await` after `setup_app` |
 | Wrong type on `call()` | Type annotation missing | Add explicit type: `let result: MyType = conductor.call(...)` |

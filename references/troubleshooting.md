@@ -92,7 +92,7 @@ Fixed in stable v0.700.0. If you are on stable and see one of these, something e
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Cross-agent read returns `None` intermittently | Missing consistency wait | `await_consistency(&[&alice_cell, &bob_cell]).await.unwrap()` before every cross-agent read. `await_consistency_s(n, ..)` for a custom timeout |
+| Cross-agent read returns `None` intermittently | Missing consistency wait | `await_consistency([&alice_cell, &bob_cell]).await.unwrap()` before every cross-agent read. `await_consistency_s(n, ..)` for a custom timeout |
 | Suites over roughly 8 tests hang or flake | Too many in-process conductors at once | `cargo test -- --test-threads 6` |
 | `Conductor::install_app_with_manifest` not found | Moved behind a feature in 0.7 | Enable the `test_utils` feature |
 | `mock_network` not found | Removed from `holochain_p2p` in 0.7 | Use `test_utils` directly |

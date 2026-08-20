@@ -122,7 +122,7 @@ Validate specific API calls against the actual HDK 0.7 API (use the hAppenings o
 | T5.8 | Validation signature | `pub fn validate(op: Op) -> ExternResult<ValidateCallbackResult>` | `references/patterns.md` |
 | T5.9 | `post_commit` infallible | `#[hdk_extern(infallible)]` + `pub fn post_commit(...)` | `references/architecture.md` or `references/patterns.md` |
 | T5.10 | Remote signal cap grant | `CapAccess::Unrestricted` grant created in `init()` | `references/access-control.md` |
-| T5.11 | consistency call | `await_consistency(&[&alice_cell, &bob_cell])` | `references/testing.md` |
+| T5.11 | consistency call | `await_consistency([&alice_cell, &bob_cell])` | `references/testing.md` |
 | T5.12 | Scaffold compile check | `hc s sandbox generate workdir/` | `references/workflows/implement-zome.md` |
 
 ### Version pin consistency `[auto]`
