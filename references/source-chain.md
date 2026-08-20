@@ -50,6 +50,103 @@ Prefer the first. Both compile; the second only spells out what the first infers
 
 Builder methods: `sequence_range`, `entry_type`, `entry_hashes`, `action_type`, `include_entries`, `ascending`, `descending`. There are also in-memory helpers for when you already hold records: `filter_records`, `filter_actions` and `disambiguate_forks`.
 
+### Opening a `Record`
+
+`query()` hands back `Vec<Record>`, and a `Record` is a signed action plus its entry slot. To report
+*what kind* of thing each record is, you go through the action, not the entry.
+
+```rust
+pub struct Record {
+    pub signed_action: SignedHashed<Action>,
+    pub entry: RecordEntry<Entry>,
+}
+```
+
+Four accessors cover nearly every use (`holochain_integrity_types-0.7.0/src/record.rs:252-290`):
+
+| Call | Returns | Use |
+|---|---|---|
+| `record.action()` | `&Action` | The action content, `{ header, data }` |
+| `record.action_address()` | `&ActionHash` | This record's own hash |
+| `record.action_hashed()` | `&HoloHashed<Action>` | Content and hash together |
+| `record.entry()` | `&RecordEntry<Entry>` | `Present`, `Hidden`, `NA` or `NotStored` |
+
+**`record.action()` returns `&Action`, not a `SignedHashed`.** The `.hashed.content` path belongs to
+`SignedHashed<Action>`, so it applies to `record.signed_action`, never to the result of
+`record.action()`. `record.action().hashed` does not compile. That mistake is easy to make by
+analogy with Sweettest code, which reaches for `record.signed_action.hashed.hash` because it holds
+the whole record rather than an accessor.
+
+An `Action` in 0.7 is `{ header: ActionHeader, data: ActionData }` (`src/action.rs:532`). The header
+carries `author`, `timestamp`, `action_seq` and `prev_action` for every variant; `data` carries the
+per-variant payload. Match on `data` to discriminate:
+
+```rust
+use hdk::prelude::*;
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag = "kind")]
+pub enum MyActivity {
+    Wrote { action_hash: ActionHash, timestamp: Timestamp },
+    Revised { action_hash: ActionHash, replaces: ActionHash },
+    Removed { deletes: ActionHash },
+    Linked { base: AnyLinkableHash, target: AnyLinkableHash },
+}
+
+#[hdk_extern]
+pub fn my_activity(_: ()) -> ExternResult<Vec<MyActivity>> {
+    let records = query(ChainQueryFilter::new().descending())?;
+
+    Ok(records
+        .iter()
+        .filter_map(|record| {
+            let action = record.action();
+            let hash = record.action_address().clone();
+            match &action.data {
+                ActionData::Create(_) => Some(MyActivity::Wrote {
+                    action_hash: hash,
+                    timestamp: action.header.timestamp,
+                }),
+                ActionData::Update(update) => Some(MyActivity::Revised {
+                    action_hash: hash,
+                    replaces: update.original_action_address.clone(),
+                }),
+                ActionData::Delete(delete) => Some(MyActivity::Removed {
+                    deletes: delete.deletes_address.clone(),
+                }),
+                ActionData::CreateLink(link) => Some(MyActivity::Linked {
+                    base: link.base_address.clone(),
+                    target: link.target_address.clone(),
+                }),
+                _ => None,
+            }
+        })
+        .collect())
+}
+```
+
+`ActionData` has ten variants (`src/action.rs:476`): `Dna`, `AgentValidationPkg`,
+`InitZomesComplete`, `Create`, `Update`, `Delete`, `CreateLink`, `DeleteLink`, `CloseChain`,
+`OpenChain`. When a label is all you need, `action.data.action_type()` returns the `ActionType`
+discriminant without a match.
+
+Field names, read from `src/action.rs` rather than inferred:
+
+| Variant | Fields |
+|---|---|
+| `CreateData` | `entry_type`, `entry_hash` |
+| `UpdateData` | `original_action_address`, `original_entry_address`, `entry_type`, `entry_hash` |
+| `DeleteData` | `deletes_address`, `deletes_entry_address` |
+| `CreateLinkData` | `base_address`, `target_address`, `zome_index`, `link_type`, `tag` |
+| `DeleteLinkData` | `base_address`, `link_add_address` |
+
+**Link addresses are `AnyLinkableHash`, not `EntryHash` or `ActionHash`.** Both ends of a
+`CreateLink` use it (`holo_hash-0.7.0/src/aliases.rs`), because a link may point at an entry or at
+an action. `DeleteLinkData` names only the `CreateLink` action it removes, so recovering *which*
+link type was deleted means matching its `link_add_address` against the `CreateLink` records in the
+same query result. Do not reach for `get()` to resolve it: that leaves the source chain and hits the
+network, which defeats the point of `query()`.
+
 ### `query()` returns history, not current state
 
 This is the trap that makes `query()` look like a cheap replacement for link-following, and it is not one. The source chain is a log of what you wrote, in the order you wrote it. Nothing in it resolves an update chain or hides a deletion.

@@ -194,6 +194,14 @@ AgentValidationPkg {
 }
 ```
 
+`TypedAction<D>` is declared at `hdi-0.8.0/src/flat_op/typed_action.rs:17` as
+`{ header: ActionHeader, data: D }`, and re-exported by `hdi::flat_op` and so by the prelude. It is
+`hdi`'s own type, not one borrowed from `holochain_integrity_types`. Four accessors read the header
+directly: `author()`, `timestamp()`, `action_seq()` and `prev_action()`, so `action.author()` above
+is `&AgentPubKey` and needs no unwrapping. `TypedAction<D>` also derefs to `D`, so the per-variant
+fields are reachable without going through `.data`. The `AgentValidationPkg` variant itself is at
+`hdi-0.8.0/src/flat_op/flat_op_record.rs:149`.
+
 ### Which to use
 
 They are validated by **different authorities**, which is the whole difference:
