@@ -187,8 +187,8 @@ pub fn create_my_entry(my_entry: MyEntry) -> ExternResult<Record> {
 ```rust
 pub fn get_latest_my_entry(original_action_hash: ActionHash) -> ExternResult<Option<Record>> {
     let links = get_links(
-        GetLinksInputBuilder::try_new(original_action_hash.clone(), LinkTypes::MyEntryUpdates)?
-            .build(),
+        LinkQuery::try_new(original_action_hash.clone(), LinkTypes::MyEntryUpdates)?,
+        GetStrategy::default(),
     )?;
 
     let latest_link = links
@@ -216,7 +216,8 @@ pub fn get_latest_my_entry(original_action_hash: ActionHash) -> ExternResult<Opt
 pub fn get_all_my_entries() -> ExternResult<Vec<Record>> {
     let path = Path::from("entries.active");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?,
+        GetStrategy::default(),
     )?;
 
     let get_inputs: Vec<GetInput> = links
@@ -274,12 +275,13 @@ pub fn update_my_entry(
 pub fn delete_my_entry(original_action_hash: ActionHash) -> ExternResult<ActionHash> {
     let path = Path::from("entries.active");
     let path_links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?,
+        GetStrategy::default(),
     )?;
     for link in path_links {
         if let Some(hash) = link.target.into_action_hash() {
             if hash == original_action_hash {
-                delete_link(link.create_link_hash)?;
+                delete_link(link.create_link_hash, GetOptions::default())?;
             }
         }
     }
@@ -338,10 +340,18 @@ where
             })?;
             Ok(typed)
         }
-        ZomeCallResponse::Error(e) => {
-            Err(wasm_error!(WasmErrorInner::Guest(format!("Zome call error: {:?}", e))))
-        }
-        _ => Err(wasm_error!(WasmErrorInner::Guest("Unexpected call response".into()))),
+        ZomeCallResponse::Unauthorized(auth, _, zome, func) => Err(wasm_error!(
+            WasmErrorInner::Guest(format!("Unauthorized: {zome}/{func} ({auth:?})"))
+        )),
+        ZomeCallResponse::AuthenticationFailed(_, agent) => Err(wasm_error!(
+            WasmErrorInner::Guest(format!("Authentication failed for {agent:?}"))
+        )),
+        ZomeCallResponse::NetworkError(e) => Err(wasm_error!(WasmErrorInner::Guest(
+            format!("Network error: {e}")
+        ))),
+        ZomeCallResponse::CountersigningSession(e) => Err(wasm_error!(WasmErrorInner::Guest(
+            format!("Countersigning session failed to start: {e}")
+        ))),
     }
 }
 
@@ -494,8 +504,8 @@ Four things about this that catch people out, all stated in the 0.7 source:
 ### `delete_link()` — requires GetOptions
 
 ```rust
-// WRONG (pre-0.6):
-delete_link(link.create_link_hash)?;
+// WRONG (pre-0.6):  legacy-ok
+delete_link(link.create_link_hash)?;  // legacy-ok
 
 // CORRECT (0.6+):
 delete_link(link.create_link_hash, GetOptions::default())?;
@@ -505,7 +515,7 @@ delete_link(link.create_link_hash, GetOptions::default())?;
 
 ```rust
 let links = get_links(
-    LinkQuery::new(original_action_hash.clone(), LinkTypes::MyEntryUpdates),
+    LinkQuery::try_new(original_action_hash.clone(), LinkTypes::MyEntryUpdates)?,
     GetStrategy::Local,
 )?;
 ```
@@ -521,14 +531,14 @@ let links = get_links(
 
 ```rust
 // Tag prefix filter:
-let query = LinkQuery::new(base, LinkTypes::MyLink)
-    .tag_prefix(tag_bytes);
+let query = LinkQuery::try_new(base, LinkTypes::MyLink)?
+    .tag_prefix(LinkTag::new(tag_bytes));
 
 // Count without fetching records:
-let count = count_links(query)?;
+let count = count_links(query.clone())?;
 
 // Include deleted links:
-let details = get_links_details(query)?;
+let details = get_links_details(query, GetStrategy::default())?;
 ```
 
 ### `HDK.with()` Batch Gets
