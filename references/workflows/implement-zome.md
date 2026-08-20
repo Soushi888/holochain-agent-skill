@@ -107,6 +107,15 @@ pub fn validate_create_my_entry(
     }
     Ok(ValidateCallbackResult::Valid)
 }
+
+// Link validation takes the typed create-link action. Note the type parameter:
+// `CreateLinkData` for a create, `DeleteLinkData` for a delete. See patterns.md
+// for the body that resolves and checks the link target.
+pub fn validate_create_link_agent_to_my_entry(
+    _action: TypedAction<CreateLinkData>,
+) -> ExternResult<ValidateCallbackResult> {
+    Ok(ValidateCallbackResult::Valid)
+}
 ```
 
 ---
@@ -146,8 +155,8 @@ pub fn create_my_entry(my_entry: MyEntry) -> ExternResult<Record> {
 #[hdk_extern]
 pub fn get_latest_my_entry(original_action_hash: ActionHash) -> ExternResult<Option<Record>> {
     let links = get_links(
-        GetLinksInputBuilder::try_new(original_action_hash.clone(), LinkTypes::MyEntryUpdates)?
-            .build(),
+        LinkQuery::try_new(original_action_hash.clone(), LinkTypes::MyEntryUpdates)?,
+        GetStrategy::default(),
     )?;
     let latest_hash = links
         .into_iter()
@@ -162,7 +171,8 @@ pub fn get_latest_my_entry(original_action_hash: ActionHash) -> ExternResult<Opt
 pub fn get_all_my_entries(_: ()) -> ExternResult<Vec<Record>> {
     let path = Path::from("entries.active");
     let links = get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?,
+        GetStrategy::default(),
     )?;
     let inputs: Vec<GetInput> = links
         .into_iter()
@@ -203,23 +213,24 @@ pub fn delete_my_entry(original_action_hash: ActionHash) -> ExternResult<ActionH
     // Clean path index (global browse)
     let path = Path::from("entries.active");
     for link in get_links(
-        GetLinksInputBuilder::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?.build(),
+        LinkQuery::try_new(path.path_entry_hash()?, LinkTypes::PathToMyEntry)?,
+        GetStrategy::default(),
     )? {
         if link.target.into_action_hash() == Some(original_action_hash.clone()) {
-            delete_link(link.create_link_hash)?;
+            delete_link(link.create_link_hash, GetOptions::default())?;
         }
     }
 
     // Clean agent index (per-author listing) — omit if you want historical tombstones
     for link in get_links(
-        GetLinksInputBuilder::try_new(
+        LinkQuery::try_new(
             agent_info()?.agent_initial_pubkey,
             LinkTypes::AgentToMyEntry,
-        )?
-        .build(),
+        )?,
+        GetStrategy::default(),
     )? {
         if link.target.into_action_hash() == Some(original_action_hash.clone()) {
-            delete_link(link.create_link_hash)?;
+            delete_link(link.create_link_hash, GetOptions::default())?;
         }
     }
 
