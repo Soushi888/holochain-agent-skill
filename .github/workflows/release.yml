@@ -130,7 +130,12 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create the GitHub release
-        if: github.event_name == 'push'
+        # npm and GitHub are independent distribution channels, so a registry
+        # refusal must not withhold the archives. Every gate above still
+        # guards this step; only the publish result is excluded, and the job
+        # still reports failure when the publish fails, so a divergence is
+        # visible rather than silent.
+        if: github.event_name == 'push' && !cancelled()
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}

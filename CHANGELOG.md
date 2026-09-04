@@ -6,7 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.0.0-rc.1] - 2026-09-04
 
-First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
+The 1.0 release candidate. Targets **Holochain 0.7 only**, a clean break from 0.6.
+
+This teaches a coding agent how to build a Holochain hApp: the coordinator and integrity split, DHT data modelling, entry and link types, CRUD and update chains, validation that stays deterministic, capability grants, cell cloning, signals, Sweettest, the TypeScript client, Nix environments, and packaging a `.webhapp` for desktop. 20 reference pages, 8 guided workflows, 17 templates, and an example hApp that compiles with a passing two-agent test suite.
+
+```bash
+# npm, into whichever harnesses the project uses
+bunx holochain-agent-skills@next install --yes
+
+# or the archive, straight into a skills directory
+mkdir -p .claude/skills && curl -fsSL \
+  https://github.com/Soushi888/holochain-agent-skills/releases/download/v1.0.0-rc.1/holochain-agent-skills.tar.gz \
+  | tar -xz -C .claude/skills
+```
+
+**Why a candidate rather than 1.0.** Documentation about a moving target rots, and a rotted skill is worse than none: it produces confident code that does not compile, and it reads authoritative while doing it. Holochain 0.7 rewrote the Action model in July 2026, so this release carries CI that fails when the docs teach an API 0.7 removed, in shipped templates as well as in prose, and when a version pin disagrees with itself across files. Each of those gates was proven by seeding a defect and watching it fail, because a gate that never fails is not a gate.
+
+What none of that can measure is whether an agent that has never seen this repository routes to the right page and gets the code right on someone else's project. That needs your project. Install it, run it on real work, and open an issue for anything it gets wrong: the page it should have loaded, the API it got stale, the workflow that sent it sideways. That feedback is what turns this candidate into 1.0.
+
+The `next` dist-tag and the prerelease flag exist so this never reaches anyone who did not ask for it: `bunx holochain-agent-skills install` without `@next` and the `releases/latest/download` URL both continue to point at the previous stable release until 1.0.0 ships.
 
 ### Breaking
 
