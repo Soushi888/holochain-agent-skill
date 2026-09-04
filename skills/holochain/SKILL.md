@@ -17,7 +17,7 @@ compatibility: >
   hc scaffold and nix flake updates.
 metadata:
   author: soushi888
-  version: "1.0.0"
+  version: "1.0.0-rc.1"
   holochain-versions: "hdk=0.7.0, hdi=0.8.0, holonix ref=main-0.7"
 ---
 

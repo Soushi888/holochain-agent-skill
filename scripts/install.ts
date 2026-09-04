@@ -27,6 +27,12 @@ import { createInterface } from "node:readline";
  * in the package where being wrong is silent: an install into a directory
  * nothing scans looks exactly like a successful install. Nothing goes in here
  * from recall.
+ *
+ * The silence is asymmetric, which is why the bar is a vendor doc and not a
+ * plausible inference: a wrong path fails silently, while a missing harness
+ * fails loudly, because the user sees their harness absent from the detected
+ * list and says so. Omitting a row costs a bug report; guessing one costs a
+ * user who thinks the skill is installed and cannot see why it never loads.
  */
 type Target = {
   id: string;
