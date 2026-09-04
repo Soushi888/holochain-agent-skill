@@ -63,7 +63,7 @@ cd your-project && node ~/holochain-agent-skills/bin/install.mjs install --link
 
 ```nix
 inputs.holochain-agent-skills = {
-  url = "github:Soushi888/holochain-agent-skills/v1.0.0";
+  url = "github:Soushi888/holochain-agent-skills/v1.0.0-rc.1";
   flake = false;
 };
 # consume: "${inputs.holochain-agent-skills}/skills/holochain"
@@ -72,7 +72,7 @@ inputs.holochain-agent-skills = {
 or use the flake, which also hands you the devShell glue:
 
 ```nix
-inputs.holochain-agent-skills.url = "github:Soushi888/holochain-agent-skills/v1.0.0";
+inputs.holochain-agent-skills.url = "github:Soushi888/holochain-agent-skills/v1.0.0-rc.1";
 
 # in your devShell:
 shellHook = ''
@@ -93,6 +93,21 @@ by default; pass `targets` to change that. It exists because every consumer writ
 rsync glue and hits the same wall: Nix store paths are read-only and `rsync -a` preserves
 that mode, so the *second* `nix develop` fails with a permission error. The hook passes
 `--chmod=u+w`.
+
+**If you pinned this repository before 1.0, the path changed.** The repository root used to be
+the skill, so glue that copied the root worked. It no longer does, and it fails silently: the
+root now holds no `SKILL.md` at all, so a harness pointed at a copy of it finds no skill and
+loads nothing, with no error to read. Append `skills/holochain` to whatever you pin:
+
+```bash
+# before 1.0
+rsync -a --delete "${SRC}/" .claude/skills/holochain/
+# 1.0 and later
+rsync -a --delete "${SRC}/skills/holochain/" .claude/skills/holochain/
+```
+
+or drop the glue and use `lib.mkSkillsHook` above. The full breaking list is in
+[CHANGELOG.md](CHANGELOG.md).
 
 </details>
 

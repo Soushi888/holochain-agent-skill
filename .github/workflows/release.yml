@@ -34,9 +34,17 @@ jobs:
           # releases/latest/download URL hands out, so it goes to npm under the
           # `next` dist-tag and to GitHub as a prerelease, which that URL skips.
           case "${TAG#v}" in
-            *-*) echo "prerelease=true"  >> "$GITHUB_OUTPUT"; echo "npm_tag=next"   >> "$GITHUB_OUTPUT" ;;
-            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT"; echo "npm_tag=latest" >> "$GITHUB_OUTPUT" ;;
+            *-*) PRERELEASE=true;  NPM_TAG=next   ;;
+            *)   PRERELEASE=false; NPM_TAG=latest ;;
           esac
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "npm_tag=$NPM_TAG" >> "$GITHUB_OUTPUT"
+          # Echoed to stdout as well as to GITHUB_OUTPUT, because the outputs
+          # are consumed only by the two publishing steps, and those are the
+          # steps a workflow_dispatch rehearsal skips. Without this line a dry
+          # run proves the branch executes and proves nothing about what it
+          # produced, which is the one thing worth rehearsing.
+          echo "Resolved: tag=$TAG version=${TAG#v} prerelease=$PRERELEASE npm_tag=$NPM_TAG"
 
       # Everything below publishes something irreversible, so both gates run
       # first. The version check is the one that matters here: a package whose
