@@ -64,6 +64,30 @@ Add `--dry-run` to preview the changes first. Bumping the pins is not the same a
 
 This does not affect a release, which runs on `ubuntu-latest`. It affects a maintainer building the archives locally before tagging. On macOS, `brew install coreutils gnu-tar` and put their `gnubin` directories on `PATH` first.
 
+## Cutting a release
+
+One version, declared in four places, and one tag. `package.json`, the `metadata.version` field of `skills/holochain/SKILL.md`, the topmost `## [x.y.z]` heading in `CHANGELOG.md`, and the git tag must all agree; `scripts/check-versions.sh vX.Y.Z` says whether they do, and `release.yml` refuses to publish when they do not.
+
+1. Set the version in the three in-tree places and write the `## [X.Y.Z] - YYYY-MM-DD` changelog section. The workflow extracts that section verbatim as the GitHub release body, so an empty section ships an empty release.
+2. Run the gates locally: `sh scripts/validate-skill.sh`, `sh scripts/eval/run-eval.sh`, `sh scripts/check-versions.sh vX.Y.Z`, `bun run build`, `sh scripts/build-release-assets.sh`, `sh scripts/check-reproducible.sh`, `nix flake check`.
+3. Merge to `main`, then push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`. `release.yml` re-runs every gate, publishes the npm package with provenance, and creates the GitHub release with the `.tar.gz`, the `.zip` and `SHA256SUMS`.
+
+To rehearse without publishing, run `release.yml` by hand from the Actions tab (`workflow_dispatch`) with the tag as input: every gate and every build step runs, and the two publishing steps are skipped.
+
+### Release candidates
+
+A tag whose version carries a hyphen, such as `v1.0.0-rc.1`, is a prerelease, and the workflow treats it as one: the npm package is published under the `next` dist-tag rather than `latest`, and the GitHub release is marked as a prerelease, which the `releases/latest/download` URL in the README skips. So a candidate never reaches anyone who runs the plain install command; testers opt in with:
+
+```bash
+bunx holochain-agent-skills@next install --yes
+```
+
+or with the candidate's own archive URL from the GitHub release page. The version string is the full `1.0.0-rc.1` in all three in-tree places, and the changelog section is `## [1.0.0-rc.1]`. When the candidate becomes the release, rename that section to `## [1.0.0]`, set the version to `1.0.0`, and tag `v1.0.0`; nothing else changes.
+
+### What the repository needs before the first publish
+
+`release.yml` publishes with `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`. That secret is not created by anything in this repository. A maintainer creates an npm granular access token with publish rights on `holochain-agent-skills` and adds it as the `NPM_TOKEN` repository secret before pushing the first tag. Without it every gate passes, every asset builds, and the run fails at `npm publish` with the tag already pushed.
+
 ## Reporting a stale version pin
 
 If you notice a version pin in this skill that no longer matches what a Holochain project actually needs (a newer `hdk`/`hdi` release, a new `holonix` ref, a new `@holochain/client` or `hc-spin` version), that is the single most useful and lowest-friction contribution you can make. Open an issue using the **Stale Version Pin** issue template, which asks for the component, the version the skill currently claims, the version that is actually current, and the registry URL (crates.io, npm, or the relevant git ref) proving it. You do not need to fix the pin yourself; a well-sourced report is enough for a maintainer to run `scripts/bump-versions.sh` and re-verify the surrounding prose.

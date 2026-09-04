@@ -28,6 +28,15 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          # A hyphen in the version is the semver prerelease marker, so
+          # v1.0.0-rc.1 is a release candidate and v1.0.0 is not. A candidate
+          # must never become what `bunx holochain-agent-skills` or the
+          # releases/latest/download URL hands out, so it goes to npm under the
+          # `next` dist-tag and to GitHub as a prerelease, which that URL skips.
+          case "${TAG#v}" in
+            *-*) echo "prerelease=true"  >> "$GITHUB_OUTPUT"; echo "npm_tag=next"   >> "$GITHUB_OUTPUT" ;;
+            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT"; echo "npm_tag=latest" >> "$GITHUB_OUTPUT" ;;
+          esac
 
       # Everything below publishes something irreversible, so both gates run
       # first. The version check is the one that matters here: a package whose
@@ -108,7 +117,7 @@ jobs:
 
       - name: Publish to npm
         if: github.event_name == 'push'
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --tag "${{ steps.tag.outputs.npm_tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -117,6 +126,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
+          prerelease: ${{ steps.tag.outputs.prerelease == 'true' }}
           body_path: /tmp/release-notes.md
           files: |
             dist/holochain-agent-skills-${{ steps.tag.outputs.version }}.tar.gz
