@@ -1,0 +1,18 @@
+manifest_version: '0'
+name: my_forum
+description: null
+roles:
+- name: forum
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    path: ../dnas/forum/workdir/forum.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 0
+allow_deferred_memproofs: false
+bootstrap_url: null
+relay_url: null

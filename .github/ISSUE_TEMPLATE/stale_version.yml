@@ -1,0 +1,51 @@
+name: Stale Version Pin
+description: A version pin in the skill (hdk, hdi, holonix, holochain, @holochain/client, hc-spin, or similar) no longer matches what is actually current.
+title: "[Stale Version]: "
+labels: ["stale-version"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the single most useful and lowest-friction contribution to this repository. You do not need to fix the pin yourself; a well-sourced report is enough for a maintainer to run `scripts/bump-versions.sh` and re-verify the surrounding content.
+
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which pinned component is stale?
+      placeholder: "hdk / hdi / holochain / holonix / @holochain/client / hc-spin / holochain_scaffolding_cli"
+    validations:
+      required: true
+
+  - type: input
+    id: claimed-version
+    attributes:
+      label: Version the skill currently claims
+      description: What does the skill currently say (check `SKILL.md` frontmatter and its Toolchain currency table)?
+      placeholder: "0.7.0"
+    validations:
+      required: true
+
+  - type: input
+    id: current-version
+    attributes:
+      label: Version that is actually current
+      description: What is the actual current version, per the registry?
+      placeholder: "0.7.1"
+    validations:
+      required: true
+
+  - type: input
+    id: registry-url
+    attributes:
+      label: Registry URL proving it
+      description: A direct link to crates.io, npm, or the relevant git ref/tag that shows the current version.
+      placeholder: "https://crates.io/crates/hdk/versions"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything relevant about breaking changes that came with the new version, if you know of any.

@@ -1,0 +1,40 @@
+id	prompt	expected
+R01	Can you look over this zome and flag anything sketchy before I open the pull request?	references/workflows/review-zome.md
+R02	I want a second pair of eyes on my validation logic before I call this done.	references/workflows/review-zome.md
+R03	I need to figure out what entries and links make sense for a marketplace listing feature before I start coding.	references/workflows/design-data-model.md
+R04	Help me sketch out the DHT shape for a chat app, what should even be an entry versus a link.	references/workflows/design-data-model.md
+R05	Walk me through setting up a brand new happ project from a blank folder.	references/workflows/scaffold.md
+R06	I want to get my dev shell running so I can start scaffolding a new Holochain project.	references/workflows/scaffold.md
+R07	The scaffolding CLI isn't available in this sandbox, can you just write out the project files by hand?	references/workflows/manual-scaffold.md
+R08	Build out a full zome with create, read, update and delete for a Profile entry.	references/workflows/implement-zome.md
+R09	Write the coordinator and integrity crates for a new comments feature.	references/workflows/implement-zome.md
+R10	Who should actually be allowed to call the admin-only functions on this zome?	references/workflows/design-access-control.md
+R11	Before I write any code, help me figure out the capability grants my admin zome needs.	references/workflows/design-access-control.md
+R12	We're still on the old Holochain version, what does it take to bring this codebase up to the new one?	references/workflows/upgrade-holochain-0.7.md
+R13	Walk me through moving our existing hApp over to the latest Holochain release.	references/workflows/upgrade-holochain-0.7.md
+R14	I need to turn this into a desktop installer our users can actually run.	references/workflows/package-and-deploy.md
+R15	How do we get a bundle ready that we can hand off for distribution?	references/workflows/package-and-deploy.md
+R16	Explain how the coordinator and integrity halves of a zome actually fit together.	references/architecture.md
+R17	How should multiple DNAs share one Cargo workspace in this project?	references/architecture.md
+R18	How do I check that the calling agent is actually the one who founded this network before letting them touch admin functions?	references/progenitor.md
+R19	We already have a project scaffolded, now we want to add a whole new domain into it, what's involved?	references/scaffolding.md
+R20	What's the correct way to fetch links now that get_links takes a query object instead of a base hash?	references/patterns.md
+R21	How should I wire up the link so an edited entry still points back to the original version?	references/patterns.md
+R22	What grant do I need to set up in init so a remote signal actually reaches this zome?	references/access-control.md
+R23	I want each project to get its own isolated slice of the DNA instead of everyone sharing one instance.	references/cell-cloning.md
+R24	What's a clean way to define my own error enum that plays nicely with the extern result type?	references/error-handling.md
+R25	How do I write a test where two separate agents both interact with the same entry?	references/testing.md
+R26	I want to hammer this zome with a bunch of simulated agents and see how badly sync lag gets under load.	references/wind-tunnel.md
+R27	How do I call a zome function from the frontend and react to signals coming back in my Svelte app?	references/client.md
+R28	hc scaffold keeps telling me the integrity zome wasn't found in the dna, even though I definitely created it.	references/troubleshooting.md
+R29	What can I actually carry over from an old install when people move to the new DNA version?	references/migration.md
+R30	What's the right way to bump the version number when only the UI changed and the DNA didn't?	references/deployment.md
+R31	I'm sketching the data model for a listing and I want the validation rules pinned down before I touch any code.	references/workflows/design-data-model.md,references/patterns.md
+R32	Our cross-DNA call is coming back with a NetworkError variant we're not handling anywhere, what's the fix?	references/patterns.md
+R33	What actually changes in my validate() function between the old hdi and the new one?	references/workflows/upgrade-holochain-0.7.md
+R34	Before I even run the scaffolder, what do I need installed so my dev shell actually comes up?	references/workflows/scaffold.md,references/scaffolding.md
+O01	getting `cannot find type EntryCreationAction in this scope` when I try to build	references/troubleshooting.md
+O02	my two agents don't seem to see each other's data when I run the test, is this a timing thing?	references/testing.md
+O03	the conductor just quits right after we finished bumping the version, no error, nothing	references/troubleshooting.md
+O04	users are telling us their whole local state disappears every time we push a new build, is that expected?	references/deployment.md
+O05	how do I get people's old chain history to show up once everyone's moved to the new DNA?	references/migration.md

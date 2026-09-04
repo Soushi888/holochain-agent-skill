@@ -11,11 +11,11 @@ A comprehensive [Agent Skills Open Standard](https://agentskills.io) skill for H
 | **Architecture** | Coordinator/integrity zome split, DNA structure, Cargo workspace, Nix dev environment, progenitor pattern, multi-DNA, private entries |
 | **Design** | DHT data modeling, entry/link type design, discovery strategy, validation rules |
 | **Scaffold** | Holonix setup, Nix flake, `hc` CLI, `hc scaffold` commands, new project and new domain workflows |
-| **Implement** | Entry types, link types, CRUD patterns, cross-zome calls, signals, validation, HDK 0.6 API |
-| **Test** | Sweettest two-agent scenarios, `await_consistency`, update/delete patterns, inline zomes, test organization (Tryorama deprecated) |
+| **Implement** | Entry types, link types, CRUD patterns, cross-zome calls, signals, validation, HDK 0.7 API |
+| **Test** | Sweettest two-agent scenarios, `await_consistency`, update/delete patterns, inline zomes, test organization |
 | **Deploy** | Kangaroo-Electron packaging, `.webhapp` bundling, CI/CD, versioning semantics, auto-update |
 
-**Current version pins:** `hdk = "=0.6.1"` | `hdi = "=0.7.1"` | `holonix ref=main-0.6`
+**Current version pins:** `hdk = "=0.7.0"` | `hdi = "=0.8.0"` | `holonix ref=main-0.7`
 
 ## Installation
 
@@ -131,21 +131,40 @@ This skill follows a spiral from core to periphery:
 Contributions welcome. The skill follows this structure:
 
 ```
-SKILL.md              Entry point — routing table and quick reference
-Architecture.md       Core concepts: zome split, DNA, Nix, progenitor
-Patterns.md           Implementation patterns: entry types, links, CRUD, signals
-Scaffold.md           Dev environment and project scaffolding
-AccessControl.md      Capability grants system
-CellCloning.md        Partitioned data via clone cells
-ErrorHandling.md      thiserror + WasmError patterns
-Testing.md            Sweettest patterns (Tryorama deprecated)
-TypeScript.md         holochain-client, signals, Svelte integration
-Deployment.md         Kangaroo-Electron packaging and distribution
-Workflows/            Step-by-step guided workflows
-docs/                 Requirements, roadmap, and design decisions
+SKILL.md                       Entry point: routing table, context index, quick reference,
+                               toolchain currency and companion-library tables
+
+references/                    Reference material, loaded on demand
+  architecture.md                Coordinator/integrity split, DNA structure, workspace, Nix
+  progenitor.md                  Progenitor pattern, DNA properties, bootstrap founder
+  patterns.md                    Entry types, links, CRUD, validation, signals, HDK 0.7 API
+  scaffolding.md                 Holonix, Nix flake, hc CLI, hc scaffold
+  access-control.md              Capability grants, cap claims, remote signals
+  membranes.md                   genesis_self_check, membrane proofs, gating who may join
+  cryptography.md                App-level signing and encryption
+  scheduling.md                  Scheduled functions, persisted vs ephemeral
+  countersigning.md              Atomic multi-agent commits
+  cell-cloning.md                Partitioned data via clone cells
+  error-handling.md              thiserror and WasmError patterns
+  source-chain.md                query(), introspection, host functions, validation receipts
+  networking.md                  Kitsune2 and iroh, NetworkConfig, bootstrap and relay servers
+  testing.md                     Sweettest patterns, two-agent scenarios, E2E
+  wind-tunnel.md                 Performance and load testing
+  client.md                      @holochain/client, auth tokens, admin API, signals
+  deployment.md                  Kangaroo-Electron packaging and distribution
+  migration.md                   DNA migration and init properties
+  troubleshooting.md             Literal error strings mapped to causes
+  debugging.md                   Logs, hc sandbox, hc-client, inspecting a live conductor
+  frameworks/                    Svelte and Effect-TS integration
+  workflows/                     Step-by-step guided sequences, routed from SKILL.md
+  example-happ/                  A real, compiling 0.7 hApp: ground truth for every example
+
+assets/templates/              Template files (flake.nix, manifests, zome sources, harness)
+scripts/                       validate-skill.sh (CI gate), bump-versions.sh
+docs/                          Requirements, roadmap, testing matrix. Not loaded by the skill
 ```
 
-When updating for new Holochain versions, update the version pins in `SKILL.md` Quick Reference and in any code examples across all files.
+When updating for new Holochain versions, run `scripts/bump-versions.sh` rather than hand-editing pins, then run `scripts/validate-skill.sh` to confirm nothing was missed. CI runs the validator on every push and pull request.
 
 ## License
 

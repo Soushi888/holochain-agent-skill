@@ -4,6 +4,52 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] - 2026-08-19
+
+First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
+
+### Added
+
+- `references/countersigning.md`: atomic multi-agent commits, `PreflightRequest`, session times, enzymatic and M of N sessions, and the `unstable-countersigning` gate that means a stock conductor cannot run it
+- `references/scheduling.md`: `schedule()`, persisted crontab versus ephemeral duration, `#[hdk_extern(infallible)]`, and why scheduled functions run as the chain author
+- `references/cryptography.md`: `sign` / `sign_ephemeral`, `verify_signature` from validation, secretbox versus box, `create_x25519_keypair`, and what encryption does not buy you on a DHT
+- `references/migration.md`, `references/troubleshooting.md`, and the `UpgradeHolochain07` workflow
+- Warrants and chain status in `references/patterns.md`: what replaced the removed `block_agent` / `unblock_agent`, and why `ChainStatus::Valid` alone is not a clean bill of health
+- A dated toolchain currency table, a companion-library table, and an unstable-feature-gate table in `SKILL.md`
+- `references/example-happ/`: a real hApp that compiles and whose Sweettest suite passes, serving as the ground truth for every Rust example
+- `assets/templates/`: real template files rather than inlined code blocks
+- `scripts/validate-skill.sh` plus a CI workflow, and `scripts/bump-versions.sh`
+- `scripts/eval/`: a lexical routing regression guard
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue forms including a stale-version report, and a PR template
+- `docs/release-gate-1.0.md`: the completed release pass with evidence
+- `references/networking.md`: the 0.7 network stack. Kitsune2 0.5.0 over iroh, every `NetworkConfig` field with its real default, `bootstrap_url` and `relay_url`, the three timeouts that `request_timeout_s` derives, `target_arc_factor` for leecher nodes, and self-hosting `kitsune2-bootstrap-srv`
+- `references/membranes.md`: join-time gating. `genesis_self_check`, `GenesisSelfCheckDataV2`, membrane proofs in `AgentValidationPkg` validation, the deferred `provideMemproofs` flow and the `awaiting_memproofs` app status
+- `references/source-chain.md`: `query()` and `ChainQueryFilter` including the hash-bounded efficiency cliff, cell introspection across `dna_info` / `zome_info` / `agent_info` / `call_info`, `sys_time` and `random_bytes`, and validation receipts
+- `references/debugging.md`: reading a live conductor. `RUST_LOG` versus `WASM_LOG`, the `hc sandbox` subcommand set, and the `hc-client` admin and zome-call surface
+- `references/frameworks/`: Effect and Svelte integration notes for the two frontend stacks the skill is used with
+- App authentication tokens and the admin install surface in `references/client.md`: `issueAppAuthenticationToken`, `attachAppInterface`, `installApp` with `roles_settings`, and `authorizeSigningCredentials`
+
+### Changed
+
+- **Breaking: repository restructured** to `SKILL.md` + `references/` + `references/workflows/` + `assets/templates/` + `scripts/`. Symlink installs pointing at the old flat layout will break
+- Version pins bumped to `hdk = "=0.7.0"`, `hdi = "=0.8.0"`, holonix `ref=main-0.7`, `@holochain/client` 0.21.0, `@holochain/hc-spin` 0.700.0, `nodejs_24`
+- Every Rust validation example ported to the 0.7 action model and then to the **stable v0.700.0 scaffolder idiom**: `TypedAction::<D>::try_from_action(...)?` for fallible narrowing, infallible `.into()` for Create and Update widening, and no hand-rolled `WrongActionError` plus `map_err` boilerplate
+- Testing guidance moved from the retired JS harness to Sweettest throughout
+- `references/wind-tunnel.md` now warns that the latest Wind Tunnel tag pins Holochain 0.6 while its `main` branch pins 0.7
+
+### Fixed
+
+- Documented that holonix `main-0.7` bundles `hc-scaffold 0.700.0-rc.0`, whose generated `validate()` does not compile against the stable `hdi 0.8.0` it also pins, with each symptom and its fix
+- Corrected `manifest_version` from `"1"` to `"0"` in YAML examples
+- Corrected the cloning prerequisite in `references/cell-cloning.md` and `references/architecture.md`. `deferred: true` is not required for a clonable role, and the conductor ignores `deferred` outright: `AppBundle::resolve_cell` destructures `Create { .. }` without reading it. `strategy: clone_only` is the setting that leaves a role unprovisioned, and assembling `AppInfo` then reaches `unimplemented!()` in `holochain_conductor_api-0.7.0` (`src/app_interface.rs` line 548). Reported by @AlchemicalSpiralizer in #2
+- Removed stale `HDK 0.6` labels from `SKILL.md` and corrected `await_consistency_60s`, which does not exist, to `await_consistency`
+- Documented why a bare `cargo install holochain_scaffolding_cli` installs the wrong tool: crates.io orders `0.4000.4` above `0.700.0` by semver, so the version must be pinned explicitly
+- **`scripts/validate-skill.sh` could not see `assets/templates/` or `references/example-happ/`.** Both were absent from the file inventory the forbidden-API corpus was built from, and the pin checks excluded `assets/` and listed no `*.rs`. A template could carry an API removed in 0.7, or a stale `hdk = "=0.6.1"` pin, and the gate still exited 0. Templates are the files users copy, so this was the worst place for the gate to be blind. A `SHIPPED_CODE` inventory now feeds the same checks, and the coverage is falsified by injection in four places
+- `scripts/bump-versions.sh` used `sed -i`, a GNU extension, while its header claimed POSIX sh. On BSD and macOS, `sed -i -e` reads `-e` as a backup suffix and corrupts every file the script touches. Replaced with a portable temp-file helper
+- `scripts/eval/run-eval.sh` existed but nothing ran it. It is now a CI step
+- `references/networking.md` presented `NetworkConfig`'s Rust `Default` impl as if it were a serde default. `bootstrap_url` and `relay_url` carry no `#[serde(default)]`, so omitting the whole `network:` block works while a partial block without both URLs fails at startup with `missing field bootstrap_url`
+- Corrected `authorizeSigningCredentials` in `references/client.md` to the 0.21 tagged union `{ type: "listed", value: [[zome, fn]] }`, replacing the 0.20-era `GrantedFunctionsType` object form, and `listCapabilityGrants` to pass the required `include_revoked`
+
 ## [0.2.0] — 2026-05-15
 
 ### Added

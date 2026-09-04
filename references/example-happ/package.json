@@ -1,0 +1,27 @@
+{
+  "name": "my_forum-dev",
+  "private": true,
+  "workspaces": [
+    "ui"
+  ],
+  "scripts": {
+    "start": "AGENTS=${AGENTS:-2} npm run network",
+    "network": "hc sandbox clean && npm run build:happ && UI_PORT=$(get-port) concurrently \"npm run start --workspace ui\" \"npm run launch:happ\"",
+    "test": "npm run build:happ && cargo test",
+    "launch:happ": "hc-spin -n $AGENTS --ui-port $UI_PORT workdir/my_forum.happ",
+    "package": "npm run build:happ && npm run package --workspace ui && hc web-app pack workdir --recursive",
+    "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
+    "build:zomes": "RUSTFLAGS='--cfg getrandom_backend=\"custom\"' cargo build --release --target wasm32-unknown-unknown"
+  },
+  "devDependencies": {
+    "@holochain/hc-spin": "^0.700.0",
+    "concurrently": "^6.5.1",
+    "get-port-cli": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "hcScaffold": {
+    "template": "headless"
+  }
+}

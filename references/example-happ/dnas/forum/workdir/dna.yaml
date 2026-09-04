@@ -1,0 +1,17 @@
+manifest_version: '0'
+name: forum
+integrity:
+  network_seed: null
+  properties: null
+  zomes:
+  - name: posts_integrity
+    hash: null
+    path: ../../../target/wasm32-unknown-unknown/release/posts_integrity.wasm
+    dependencies: null
+coordinator:
+  zomes:
+  - name: posts
+    hash: null
+    path: ../../../target/wasm32-unknown-unknown/release/posts.wasm
+    dependencies:
+    - name: posts_integrity
