@@ -5,8 +5,8 @@
 ## Checklist
 
 - [ ] `sh scripts/validate-skill.sh` passes locally (paste the exit code / output below if it's not obviously green)
-- [ ] No API shape was written from recall; any Rust example matches a shape that actually compiles in `references/example-happ/`
-- [ ] If Rust code under `references/example-happ/` changed, the example hApp still compiles (`cargo build` / relevant `cargo test`)
+- [ ] No API shape was written from recall; any Rust example matches a shape that actually compiles in `skills/holochain/references/example-happ/`
+- [ ] If Rust code under `skills/holochain/references/example-happ/` changed, the example hApp still compiles (`cargo build` / relevant `cargo test`)
 - [ ] Version pins are consistent across all files touched (bumped with `scripts/bump-versions.sh`, never hand-edited)
 - [ ] No personal, private, or PAI-specific content was added (no `~/.claude/PAI/` references, no personal file paths, no private tooling)
 

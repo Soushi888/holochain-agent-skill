@@ -24,6 +24,14 @@ set -u
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$REPO_ROOT" || exit 2
 
+# The shipped skill lives in its own subtree so that a consumer who fetches the
+# repo gets the skill and nothing else. Everything above it (docs/, scripts/,
+# book.toml, the community files) is workshop, not payload. Every path below is
+# expressed against SKILL_DIR so that adding a second skill is a loop, not a
+# rewrite.
+SKILL_DIR="skills/holochain"
+SKILL_MD="$SKILL_DIR/SKILL.md"
+
 VERBOSE=0
 [ "${1:-}" = "-v" ] && VERBOSE=1
 
@@ -56,8 +64,9 @@ find . -name '*.md' -type f \
     ! -path './.local/*' \
     ! -path './.git/*' \
     ! -path './node_modules/*' \
-    ! -path './assets/*' \
-    ! -path './references/example-happ/*' \
+    ! -path './.worktrees/*' \
+    ! -path "./$SKILL_DIR/assets/*" \
+    ! -path "./$SKILL_DIR/references/example-happ/*" \
     ! -path './scripts/*' \
     | sed 's|^\./||' | sort > "$ALL_MD"
 
@@ -69,7 +78,7 @@ find . -name '*.md' -type f \
 # copied. Build output and lockfiles are excluded; lockfiles pin transitively
 # and are regenerated, not hand-maintained.
 SHIPPED_CODE="$TMPDIR_/shipped_code"
-find assets references/example-happ \
+find "$SKILL_DIR/assets" "$SKILL_DIR/references/example-happ" \
     \( -name '*.rs' -o -name '*.toml' -o -name '*.json' -o -name '*.nix' \
        -o -name '*.yaml' -o -name '*.yml' \) -type f \
     ! -path '*/target/*' \
@@ -82,22 +91,27 @@ find assets references/example-happ \
 # ---------------------------------------------------------------------------
 section "Frontmatter (SKILL.md)"
 
-if [ ! -f SKILL.md ]; then
-    fail frontmatter "SKILL.md is missing"
+if [ ! -f "$SKILL_MD" ]; then
+    fail frontmatter "$SKILL_MD is missing"
 else
-    if [ "$(head -n 1 SKILL.md)" != "---" ]; then
-        fail frontmatter "SKILL.md does not begin with a --- frontmatter fence"
+    if [ "$(head -n 1 "$SKILL_MD")" != "---" ]; then
+        fail frontmatter "$SKILL_MD does not begin with a --- frontmatter fence"
     else
         FM="$TMPDIR_/frontmatter"
-        sed -n '2,/^---$/p' SKILL.md | sed '$d' > "$FM"
+        sed -n '2,/^---$/p' "$SKILL_MD" | sed '$d' > "$FM"
 
         SKILL_NAME=$(sed -n 's/^name:[[:space:]]*//p' "$FM" | head -n 1)
         if [ -z "$SKILL_NAME" ]; then
             fail frontmatter "no 'name:' field"
         elif ! printf '%s' "$SKILL_NAME" | grep -Eq '^[a-z0-9-]+$'; then
             fail frontmatter "name '$SKILL_NAME' does not match ^[a-z0-9-]+\$"
+        elif [ "$SKILL_NAME" != "$(basename "$SKILL_DIR")" ]; then
+            # agentskills.io: the name field must match the parent directory
+            # name. Installers derive the install path from the directory, so a
+            # mismatch silently produces a skill the agent cannot address.
+            fail frontmatter "name '$SKILL_NAME' does not match directory '$(basename "$SKILL_DIR")'"
         else
-            pass frontmatter "name '$SKILL_NAME' is well-formed"
+            pass frontmatter "name '$SKILL_NAME' is well-formed and matches its directory"
         fi
 
         # description may be a folded block scalar; take everything from
@@ -127,20 +141,24 @@ fi
 # ---------------------------------------------------------------------------
 section "Routing targets resolve"
 
+# Routing targets are written relative to SKILL.md, so they resolve against
+# SKILL_DIR rather than the repo root. ROUTED holds the repo-root-relative form
+# so the orphan check below can compare it against ALL_MD directly.
 ROUTED="$TMPDIR_/routed"
-: > "$ROUTED"
-if [ -f SKILL.md ]; then
-    grep -o '`[A-Za-z0-9_/.-]*\.md`' SKILL.md | tr -d '`' >> "$ROUTED"
-    grep -o '](\([A-Za-z0-9_/.-]*\.md\))' SKILL.md | sed 's/^](//; s/)$//' >> "$ROUTED"
+ROUTED_RAW="$TMPDIR_/routed_raw"
+: > "$ROUTED_RAW"
+if [ -f "$SKILL_MD" ]; then
+    grep -o '`[A-Za-z0-9_/.-]*\.md`' "$SKILL_MD" | tr -d '`' >> "$ROUTED_RAW"
+    grep -o '](\([A-Za-z0-9_/.-]*\.md\))' "$SKILL_MD" | sed 's/^](//; s/)$//' >> "$ROUTED_RAW"
 fi
-sort -u "$ROUTED" -o "$ROUTED"
+sed "s|^|$SKILL_DIR/|" "$ROUTED_RAW" | sort -u > "$ROUTED"
 
 while IFS= read -r target; do
     [ -z "$target" ] && continue
     if [ -f "$target" ]; then
         pass routing "$target"
     else
-        fail routing "SKILL.md routes to '$target' which does not exist"
+        fail routing "$SKILL_MD routes to '${target#"$SKILL_DIR/"}' which does not exist"
     fi
 done < "$ROUTED"
 
@@ -156,8 +174,8 @@ if [ -f SUMMARY.md ]; then
     grep -o '](\([A-Za-z0-9_/.-]*\.md\))' SUMMARY.md | sed 's/^](//; s/)$//' >> "$REACHABLE"
 fi
 # Entry points and community files are reachable by definition.
-for f in SKILL.md SUMMARY.md README.md CLAUDE.md CHANGELOG.md CONTRIBUTING.md \
-         CODE_OF_CONDUCT.md; do
+for f in "$SKILL_MD" SUMMARY.md README.md CLAUDE.md CHANGELOG.md CONTRIBUTING.md \
+         CODE_OF_CONDUCT.md AGENTS.md; do
     printf '%s\n' "$f" >> "$REACHABLE"
 done
 # GitHub templates are consumed by GitHub, not by routing.
@@ -217,8 +235,12 @@ EXPECT_HOLONIX="main-0.7"
 EXPECT_NODE="nodejs_24"
 EXPECT_CLIENT="0.21"
 
-if [ -f SKILL.md ]; then
-    DECLARED=$(sed -n 's/.*holochain-versions:[[:space:]]*"\{0,1\}\(.*\)/\1/p' SKILL.md | head -n 1)
+# `$SKILL_MD`, not a bare `SKILL.md`. The skill moved to `skills/holochain/` and
+# this test kept looking at the repository root, where no SKILL.md exists, so the
+# whole block silently skipped and even the hdk/hdi assertions stopped running.
+# Caught by seeding `holonix ref=main-0.8` and watching the run still exit 0.
+if [ -f "$SKILL_MD" ]; then
+    DECLARED=$(sed -n 's/.*holochain-versions:[[:space:]]*"\{0,1\}\(.*\)/\1/p' "$SKILL_MD" | head -n 1)
     case "$DECLARED" in
         *"hdk=$EXPECT_HDK"*) pass pins "frontmatter declares hdk=$EXPECT_HDK" ;;
         *) fail pins "SKILL.md frontmatter does not declare hdk=$EXPECT_HDK (got: ${DECLARED:-none})" ;;
@@ -226,6 +248,10 @@ if [ -f SKILL.md ]; then
     case "$DECLARED" in
         *"hdi=$EXPECT_HDI"*) pass pins "frontmatter declares hdi=$EXPECT_HDI" ;;
         *) fail pins "SKILL.md frontmatter does not declare hdi=$EXPECT_HDI (got: ${DECLARED:-none})" ;;
+    esac
+    case "$DECLARED" in
+        *"holonix ref=$EXPECT_HOLONIX"*) pass pins "frontmatter declares holonix ref=$EXPECT_HOLONIX" ;;
+        *) fail pins "SKILL.md frontmatter does not declare holonix ref=$EXPECT_HOLONIX (got: ${DECLARED:-none})" ;;
     esac
 fi
 
@@ -239,7 +265,7 @@ check_absent() {
         --include='*.json' --include='*.yaml' --include='*.yml' \
         --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
         --exclude-dir=.local --exclude-dir=.git --exclude-dir=node_modules \
-        --exclude-dir=assets --exclude=CHANGELOG.md \
+        --exclude-dir=.worktrees --exclude-dir=assets --exclude=CHANGELOG.md \
         "$2" . 2>/dev/null | grep -v 'legacy-ok')
     if [ -n "$hits" ]; then
         printf 'FAIL  [%s] %s\n' "$1" "$3"
@@ -282,6 +308,45 @@ check_absent_in_code() {
         pass "$1" "$3"
     fi
 }
+
+# EXPECT_HOLONIX, EXPECT_NODE and EXPECT_CLIENT were declared beside
+# EXPECT_HDK/EXPECT_HDI and then never read, so three of the five pins this
+# section names had no check at all. holonix is asserted against the frontmatter
+# above; these two work the other way round from the named-value checks below.
+# Those forbid the superseded versions somebody thought of. These forbid every
+# OTHER version, including the ones nobody has thought of yet, so a bump that
+# misses one spelling of a pin cannot pass. Measured: the
+# `@holochain/client 0.21.0` line in the Quick Reference is plain text, not the
+# quoted JSON form, and bump-versions.sh did not touch it.
+check_only_version() {
+    # check_only_version <label> <ERE to find> <ERE that is allowed> <explanation>
+    # Whole lines first, so the legacy-ok escape hatch still works. Extracting
+    # occurrences with -o before filtering would throw the marker away, and a
+    # deliberate historical mention would be indistinguishable from drift.
+    hits=$(
+        {
+            grep -rEh --include='*.md' --include='*.nix' --include='*.toml' \
+                --include='*.json' --include='*.yaml' --include='*.yml' \
+                --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
+                --exclude-dir=.local --exclude-dir=.git --exclude-dir=node_modules \
+                --exclude-dir=.worktrees --exclude-dir=dist --exclude=CHANGELOG.md \
+                "$2" . 2>/dev/null
+            grep -Eh "$2" "$CODE_LINES" 2>/dev/null
+        } | grep -v 'legacy-ok' | grep -Eo "$2" | grep -Ev "$3" | sort -u
+    )
+    if [ -n "$hits" ]; then
+        printf 'FAIL  [%s] %s\n' "$1" "$4"
+        printf '%s\n' "$hits" | sed 's/^/        /'
+        FAILURES=$((FAILURES + 1))
+    else
+        pass "$1" "$4"
+    fi
+}
+
+check_only_version pins 'nodejs_[0-9]+' "^$EXPECT_NODE\$" \
+    "every nodejs pin reads $EXPECT_NODE"
+check_only_version pins '@holochain/client[^0-9]{0,12}[0-9]+\.[0-9]+' "$EXPECT_CLIENT" \
+    "every @holochain/client pin reads $EXPECT_CLIENT.x"
 
 check_absent pins 'hdk = "=0\.6' 'no superseded hdk 0.6.x pin'
 check_absent pins 'hdi = "=0\.7' 'no superseded hdi 0.7.x pin'
@@ -356,7 +421,7 @@ section "Tryorama retirement"
 
 TRY_HITS=$(grep -rn --include='*.md' -i 'tryorama' . \
     --exclude-dir=book --exclude-dir=MEMORY --exclude-dir=Plans \
-    --exclude-dir=.local --exclude-dir=.git 2>/dev/null | grep -v '^./CHANGELOG.md:' | grep -v 'legacy-ok')
+    --exclude-dir=.local --exclude-dir=.git --exclude-dir=.worktrees 2>/dev/null | grep -v '^./CHANGELOG.md:' | grep -v 'legacy-ok')
 TRY_COUNT=$(printf '%s' "$TRY_HITS" | grep -c . || true)
 if [ "$TRY_COUNT" -gt 1 ]; then
     fail tryorama "$TRY_COUNT Tryorama mentions; at most 1 community-fork pointer is allowed"

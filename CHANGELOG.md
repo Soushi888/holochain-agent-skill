@@ -4,11 +4,54 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.0.0] - 2026-08-19
+## [1.0.0-rc.1] - 2026-09-04
 
 First stable release. Targets **Holochain 0.7 only**, a clean break from 0.6.
 
+### Breaking
+
+- **The skill moved to `skills/holochain/`.** The repository root used to be the skill, so
+  anything that fetched the repository got the whole workshop: `book.toml`, `SUMMARY.md`,
+  `CHANGELOG.md`, `CLAUDE.md`, `docs/` and `.github/` all landed inside the installed skill.
+  It also violated the spec, which requires the frontmatter `name` to match the parent
+  directory name. Consumers pinning the repository root must append `skills/holochain`:
+
+  ```nix
+  # before
+  rsync -a --delete ${inputs.holochain-agent-skills}/ .claude/skills/holochain/
+  # after
+  rsync -a --delete ${inputs.holochain-agent-skills}/skills/holochain/ .claude/skills/holochain/
+  ```
+
+  Or drop the glue entirely and use `lib.mkSkillsHook`, which this release adds.
+
+- **The repository is now `Soushi888/holochain-agent-skills`**, plural. GitHub redirects the
+  old URL and existing git remotes keep working. The skill directory stays `holochain`,
+  singular, because the spec ties it to the frontmatter `name`.
+
+- **Holochain 0.6 content is gone.** On a 0.6 project this skill will actively mislead you.
+  Pin `v0.2.0` for 0.6, or run the `UpgradeHolochain07` workflow to port.
+
 ### Added
+
+- **npm package `holochain-agent-skills`** with a harness-detecting installer:
+  `bunx holochain-agent-skills install --yes`. It finds the agent harnesses a project
+  actually uses, installs into all of them, and never prompts without an interactive
+  terminal, so an agent or a CI job can run it unattended. Flags for `--global`,
+  `--target`, `--link`, `--dry-run` and `--list`
+- **GitHub release archives** (`.tar.gz` and `.zip`) rooted at one directory per skill, so
+  `tar -xzf ... -C .claude/skills` installs in a single command. Published with
+  `SHA256SUMS`, reproducible byte for byte across builds of the same commit, plus a stable
+  `releases/latest/download/holochain-agent-skills.tar.gz` URL
+- **A Nix flake.** `packages.<system>.holochain` is rooted at the skill itself,
+  `packages.<system>.default` is the bundle, and `lib.mkSkillsHook` replaces the rsync glue
+  every consumer was writing by hand. The derivation runs the skill validator in its check
+  phase, so a broken routing path fails `nix build` rather than reaching a project
+- **`AGENTS.md`**, so an agent handed only the repository URL can install the skill unaided
+- `scripts/check-versions.sh`: the version is declared in four places (`package.json`, the
+  `SKILL.md` frontmatter, the changelog heading, the git tag) and nothing was comparing them
+- `scripts/build-release-assets.sh` and a `release.yml` workflow that runs every gate before
+  anything irreversible happens
 
 - `references/countersigning.md`: atomic multi-agent commits, `PreflightRequest`, session times, enzymatic and M of N sessions, and the `unstable-countersigning` gate that means a stock conductor cannot run it
 - `references/scheduling.md`: `schedule()`, persisted crontab versus ephemeral duration, `#[hdk_extern(infallible)]`, and why scheduled functions run as the chain author
@@ -97,5 +140,5 @@ Initial release of the Holochain agent skill.
 - All occurrences of "Claude Skill" replaced with "agent skill" for platform neutrality
 - Clone URL updated to the canonical GitHub repository
 
-[0.2.0]: https://github.com/Soushi888/holochain-agent-skill/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/Soushi888/holochain-agent-skill/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Soushi888/holochain-agent-skills/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Soushi888/holochain-agent-skills/releases/tag/v0.1.0

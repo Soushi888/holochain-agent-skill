@@ -1,10 +1,10 @@
 # Contributing
 
-Thanks for considering a contribution to the Holochain Agent Skill. This is a documentation-only repository: a vanilla [Agent Skills Open Standard](https://agentskills.io) skill for Holochain hApp development. There is no Rust build and no TypeScript build for the skill itself. Every file is Markdown, YAML frontmatter, or a template file, except for the reference hApp under `references/example-happ/`, which is real Rust and TypeScript that compiles.
+Thanks for considering a contribution to the Holochain Agent Skill. This is a documentation-only repository: a vanilla [Agent Skills Open Standard](https://agentskills.io) skill for Holochain hApp development. There is no Rust build and no TypeScript build for the skill itself. Every file is Markdown, YAML frontmatter, or a template file, except for the reference hApp under `skills/holochain/references/example-happ/`, which is real Rust and TypeScript that compiles.
 
 ## What this repository is
 
-The skill is loaded by Claude Code (and other Agent Skills-compatible tools) when a user invokes `/holochain` or when Holochain-related work is detected. `SKILL.md` is the entry point: it routes to `references/workflows/*.md` for step-by-step sequences and to the other `references/*.md` files for reference material, loaded on demand rather than all at once.
+The skill is loaded by Claude Code (and other Agent Skills-compatible tools) when a user invokes `/holochain` or when Holochain-related work is detected. `skills/holochain/SKILL.md` is the entry point: it routes to `skills/holochain/references/workflows/*.md` for step-by-step sequences and to the other `skills/holochain/references/*.md` files for reference material, loaded on demand rather than all at once.
 
 The repository also generates a static documentation site with mdBook, built from `book.toml` and `SUMMARY.md`. GitHub Actions deploys it to GitHub Pages on every push to `main`.
 
@@ -12,11 +12,11 @@ For the full file layout and the key architectural concepts the skill teaches (c
 
 ## The hard rule: examples must compile
 
-Every Rust code example in this skill must match an API shape that actually compiles against `references/example-happ/`, the reference hApp. `references/example-happ/` is the ground truth for the skill: it is not sample text, it is a real Holochain 0.7 project.
+Every Rust code example in this skill must match an API shape that actually compiles against `skills/holochain/references/example-happ/`, the reference hApp. `skills/holochain/references/example-happ/` is the ground truth for the skill: it is not sample text, it is a real Holochain 0.7 project.
 
 **Never write an API shape from recall.** Holochain's HDK and HDI change in breaking ways between minor versions, and a plausible-looking function signature that used to be correct in an older release is exactly the kind of error this skill exists to prevent. Before adding or changing a code example:
 
-1. Find the equivalent pattern in `references/example-happ/` (or write it there first if it does not yet exist) and confirm it builds.
+1. Find the equivalent pattern in `skills/holochain/references/example-happ/` (or write it there first if it does not yet exist) and confirm it builds.
 2. Copy the actual shape into the reference file, not a remembered approximation of it.
 3. If you cannot verify a pattern against the example hApp, say so in the pull request rather than guessing.
 
@@ -52,23 +52,53 @@ If the validator flags a new file you added as an orphan, that means it is not r
 Holochain is sensitive to minor version changes, so this skill pins exact versions (`hdk = "=0.7.0"`, not `hdk = "0.7"`). **Never hand-edit a version pin.** Use `scripts/bump-versions.sh`, which rewrites every occurrence across the skill consistently:
 
 ```bash
-scripts/bump-versions.sh --hdk 0.7.1 --hdi 0.8.1 --holonix main-0.7 \
-  --node 24 --client 0.21.1 --hc-spin 0.700.1
+scripts/bump-versions.sh --hdk X.Y.Z --hdi X.Y.Z --holonix main-X.Y \
+  --node NN --client X.Y.Z --hc-spin X.Y.Z
 ```
 
 Add `--dry-run` to preview the changes first. Bumping the pins is not the same as making the content correct: after running the script, you must run `scripts/validate-skill.sh`, which fails if any surviving code example still teaches an API that the new version removed. A green pin bump with a red validator means the skill claims a version it does not actually teach, and that pull request will not be merged as-is.
+
+### Release tooling needs GNU coreutils
+
+`scripts/validate-skill.sh`, `scripts/bump-versions.sh` and `scripts/check-versions.sh` are portable POSIX `sh` and run anywhere. The release scripts are not. `scripts/build-release-assets.sh` uses `tar --sort=name --owner --group --numeric-owner` and `sha256sum`, and `scripts/check-reproducible.sh` parses `tar -tvzf` output by field position. All of those are GNU behaviour. On macOS the bundled `bsdtar` has no `--sort` and there is no `sha256sum`, only `shasum -a 256`, so both scripts fail immediately rather than producing a wrong archive.
+
+This does not affect a release, which runs on `ubuntu-latest`. It affects a maintainer building the archives locally before tagging. On macOS, `brew install coreutils gnu-tar` and put their `gnubin` directories on `PATH` first.
+
+## Cutting a release
+
+One version, declared in four places, and one tag. `package.json`, the `metadata.version` field of `skills/holochain/SKILL.md`, the topmost `## [x.y.z]` heading in `CHANGELOG.md`, and the git tag must all agree; `scripts/check-versions.sh vX.Y.Z` says whether they do, and `release.yml` refuses to publish when they do not.
+
+1. Set the version in the three in-tree places and write the `## [X.Y.Z] - YYYY-MM-DD` changelog section. The workflow extracts that section verbatim as the GitHub release body, so an empty section ships an empty release.
+2. Run the gates locally: `sh scripts/validate-skill.sh`, `sh scripts/eval/run-eval.sh`, `sh scripts/check-versions.sh vX.Y.Z`, `bun run build`, `sh scripts/build-release-assets.sh`, `sh scripts/check-reproducible.sh`, `nix flake check`.
+3. Merge to `main`, then push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`. `release.yml` re-runs every gate, publishes the npm package with provenance, and creates the GitHub release with the `.tar.gz`, the `.zip` and `SHA256SUMS`.
+
+To rehearse without publishing, run `release.yml` by hand from the Actions tab (`workflow_dispatch`) with the tag as input: every gate and every build step runs, and the two publishing steps are skipped.
+
+### Release candidates
+
+A tag whose version carries a hyphen, such as `v1.0.0-rc.1`, is a prerelease, and the workflow treats it as one: the npm package is published under the `next` dist-tag rather than `latest`, and the GitHub release is marked as a prerelease, which the `releases/latest/download` URL in the README skips. So a candidate never reaches anyone who runs the plain install command; testers opt in with:
+
+```bash
+bunx holochain-agent-skills@next install --yes
+```
+
+or with the candidate's own archive URL from the GitHub release page. The version string is the full `1.0.0-rc.1` in all three in-tree places, and the changelog section is `## [1.0.0-rc.1]`. When the candidate becomes the release, rename that section to `## [1.0.0]`, set the version to `1.0.0`, and tag `v1.0.0`; nothing else changes.
+
+### What the repository needs before the first publish
+
+`release.yml` publishes with `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`. That secret is not created by anything in this repository. A maintainer creates an npm granular access token with publish rights on `holochain-agent-skills` and adds it as the `NPM_TOKEN` repository secret before pushing the first tag. Without it every gate passes, every asset builds, and the run fails at `npm publish` with the tag already pushed.
 
 ## Reporting a stale version pin
 
 If you notice a version pin in this skill that no longer matches what a Holochain project actually needs (a newer `hdk`/`hdi` release, a new `holonix` ref, a new `@holochain/client` or `hc-spin` version), that is the single most useful and lowest-friction contribution you can make. Open an issue using the **Stale Version Pin** issue template, which asks for the component, the version the skill currently claims, the version that is actually current, and the registry URL (crates.io, npm, or the relevant git ref) proving it. You do not need to fix the pin yourself; a well-sourced report is enough for a maintainer to run `scripts/bump-versions.sh` and re-verify the surrounding prose.
 
-## `references/workflows/` vs. the other `references/*.md` files
+## `references/workflows/` vs. the other `skills/holochain/references/*.md` files
 
-Files under `references/workflows/` are step-by-step guided sequences: they walk through a task from start to finish (scaffolding a project, designing a data model, implementing a zome, and so on) and are what `SKILL.md`'s Workflow Routing table points to for a given natural-language trigger.
+Files under `skills/holochain/references/workflows/` are step-by-step guided sequences: they walk through a task from start to finish (scaffolding a project, designing a data model, implementing a zome, and so on) and are what `SKILL.md`'s Workflow Routing table points to for a given natural-language trigger.
 
-The other files directly under `references/` (`architecture.md`, `patterns.md`, `testing.md`, `scaffolding.md`, `access-control.md`, `cell-cloning.md`, `error-handling.md`, `wind-tunnel.md`, `client.md`, `deployment.md`, `migration.md`, `troubleshooting.md`, and the `frameworks/` subdirectory) are reference material: they explain a domain rather than walking through a task. `SKILL.md`'s Context Files table routes to these on demand.
+The other files directly under `skills/holochain/references/` (`architecture.md`, `patterns.md`, `testing.md`, `scaffolding.md`, `access-control.md`, `cell-cloning.md`, `error-handling.md`, `wind-tunnel.md`, `client.md`, `deployment.md`, `migration.md`, `troubleshooting.md`, and the `frameworks/` subdirectory) are reference material: they explain a domain rather than walking through a task. `SKILL.md`'s Context Files table routes to these on demand.
 
-Keep this distinction when adding new content. A new step-by-step sequence belongs in `references/workflows/`; a new domain explanation belongs alongside the existing reference files. Each pattern should live in exactly one canonical file, with `SKILL.md` routing to it, rather than being duplicated across files.
+Keep this distinction when adding new content. A new step-by-step sequence belongs in `skills/holochain/references/workflows/`; a new domain explanation belongs alongside the existing reference files. Each pattern should live in exactly one canonical file, with `SKILL.md` routing to it, rather than being duplicated across files.
 
 ## `docs/` is not part of the skill
 
@@ -101,7 +131,7 @@ If in doubt, ask yourself whether the instruction would still make sense to some
 
 1. Make your changes, keeping the "examples must compile" rule and the file-role distinctions above in mind.
 2. Run `sh scripts/validate-skill.sh` locally and confirm it exits `0`.
-3. If you touched a code example, confirm it still matches `references/example-happ/` (or update the example hApp alongside it).
+3. If you touched a code example, confirm it still matches `skills/holochain/references/example-happ/` (or update the example hApp alongside it).
 4. If you touched a version pin, use `scripts/bump-versions.sh`, not a hand edit.
 5. Open the pull request. The template will ask you to confirm the above; fill it in honestly rather than skipping items.
 

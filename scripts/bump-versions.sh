@@ -49,6 +49,7 @@ FILES=$(find . \( -name '*.md' -o -name '*.nix' -o -name '*.toml' -o -name '*.js
                  -o -name '*.yaml' -o -name '*.yml' \) -type f \
     ! -path './book/*' ! -path './MEMORY/*' ! -path './Plans/*' \
     ! -path './.local/*' ! -path './.git/*' ! -path './node_modules/*' \
+    ! -path './.worktrees/*' \
     ! -path './CHANGELOG.md' | sed 's|^\./||' | sort)
 
 BEFORE=$(mktemp) || exit 2
@@ -66,20 +67,39 @@ sed_inplace() {
 }
 
 apply() {
-    # apply <file>: rewrite every pin form
+    # apply <file>: rewrite every pin form.
+    #
+    # Every substitution is guarded by `/legacy-ok/!`, the same escape hatch
+    # validate-skill.sh honours. Without it this script rewrote the deliberate
+    # historical mentions: it turned "was nodejs_22 (legacy-ok)" into "was
+    # nodejs_24", and a roadmap row recording the 0.6.1 release into one claiming
+    # that release shipped hdk 0.7.0. A bump that edits history is worse than one
+    # that misses a pin, because nothing downstream checks it.
     f="$1"
     sed_inplace "$f" \
-        -e "s|hdk = \"=[0-9][0-9.]*\"|hdk = \"=$HDK\"|g" \
-        -e "s|hdi = \"=[0-9][0-9.]*\"|hdi = \"=$HDI\"|g" \
-        -e "s|hdk=[0-9][0-9.]*|hdk=$HDK|g" \
-        -e "s|hdi=[0-9][0-9.]*|hdi=$HDI|g" \
-        -e "s|holonix?ref=main-[0-9.]*|holonix?ref=$HOLONIX|g" \
-        -e "s|holonix ref=main-[0-9.]*|holonix ref=$HOLONIX|g"
-    [ -n "$NODE" ]    && sed_inplace "$f" -e "s|nodejs_[0-9][0-9]*|nodejs_$NODE|g"
+        -e "/legacy-ok/!s|hdk = \"=[0-9][0-9.]*\"|hdk = \"=$HDK\"|g" \
+        -e "/legacy-ok/!s|hdi = \"=[0-9][0-9.]*\"|hdi = \"=$HDI\"|g" \
+        -e "/legacy-ok/!s|hdk=[0-9][0-9.]*|hdk=$HDK|g" \
+        -e "/legacy-ok/!s|hdi=[0-9][0-9.]*|hdi=$HDI|g" \
+        -e "/legacy-ok/!s|holonix?ref=main-[0-9.]*|holonix?ref=$HOLONIX|g" \
+        -e "/legacy-ok/!s|holonix ref=main-[0-9.]*|holonix ref=$HOLONIX|g"
+    [ -n "$NODE" ]    && sed_inplace "$f" -e "/legacy-ok/!s|nodejs_[0-9][0-9]*|nodejs_$NODE|g"
+    # Three spellings each, not one. The quoted JSON form is what package.json
+    # carries; the skill also states these pins as plain text in its Quick
+    # Reference fence and as a cell in its toolchain-currency table, and neither
+    # of those is quoted JSON. Bumping only the JSON form left the skill's own
+    # reference tables showing the previous version, past a green validator.
+    #
+    # The table-cell patterns use # as the sed delimiter, because the pattern
+    # itself has to match a markdown column separator.
     [ -n "$CLIENT" ]  && sed_inplace "$f" \
-        -e "s|\(\"@holochain/client\": \"\^\)[0-9][0-9.]*|\1$CLIENT|g" \
-        -e "s|@holochain/client   \^[0-9][0-9.x]*|@holochain/client   ^$CLIENT|g"
-    [ -n "$HC_SPIN" ] && sed_inplace "$f" -e "s|\(\"@holochain/hc-spin\": \"\^\)[0-9][0-9.]*|\1$HC_SPIN|g"
+        -e "/legacy-ok/!s|\(\"@holochain/client\": \"[\^~]\{0,1\}\)[0-9][0-9.]*|\1$CLIENT|g" \
+        -e "/legacy-ok/!s|\(@holochain/client[[:space:]]\{1,\}[\^~]\{0,1\}\)[0-9][0-9.x]*|\1$CLIENT|g" \
+        -e "/legacy-ok/!s#\(\`@holochain/client\`[[:space:]]*|[[:space:]]*\)[0-9][0-9.]*#\1$CLIENT#g"
+    [ -n "$HC_SPIN" ] && sed_inplace "$f" \
+        -e "/legacy-ok/!s|\(\"@holochain/hc-spin\": \"[\^~]\{0,1\}\)[0-9][0-9.]*|\1$HC_SPIN|g" \
+        -e "/legacy-ok/!s|\(hc-spin[[:space:]]\{1,\}[\^~]\{0,1\}\)[0-9][0-9.x]*|\1$HC_SPIN|g" \
+        -e "/legacy-ok/!s#\(\`@holochain/hc-spin\`[[:space:]]*|[[:space:]]*\)[0-9][0-9.]*#\1$HC_SPIN#g"
     return 0
 }
 
@@ -90,7 +110,14 @@ printf 'Bumping to: hdk=%s hdi=%s holonix=%s' "$HDK" "$HDI" "$HOLONIX"
 printf '\n\n'
 
 CHANGED=0
-for f in $FILES; do
+# Newline-delimited, not word-split: a tracked path containing a space would
+# otherwise become two nonexistent filenames. Read through a redirect rather than
+# a pipe, because a piped `while` runs in a subshell and CHANGED would come back
+# 0 no matter how many files were rewritten.
+FILELIST=$(mktemp) || exit 2
+trap 'rm -f "$BEFORE" "$AFTER" "$FILELIST"' EXIT INT TERM
+printf '%s\n' "$FILES" > "$FILELIST"
+while IFS= read -r f; do
     [ -f "$f" ] || continue
     cp "$f" "$BEFORE"
     cp "$f" "$AFTER"
@@ -101,7 +128,7 @@ for f in $FILES; do
         CHANGED=$((CHANGED + 1))
         [ "$DRY_RUN" -eq 0 ] && cp "$AFTER" "$f"
     fi
-done
+done < "$FILELIST"
 
 printf '\n'
 if [ "$DRY_RUN" -eq 1 ]; then
