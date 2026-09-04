@@ -58,10 +58,10 @@ Load on demand based on task:
 
 | File | Load When |
 |------|-----------|
-| `references/architecture.md` | Coordinator/integrity split, coordinator and integrity, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole) |
+| `references/architecture.md` | Coordinator/integrity split, coordinator and integrity, DNA structure, Cargo workspace, Nix, dna_info, network_seed, private entries, multi-DNA (multiple roles, bridge call, OtherRole, cross-DNA call) |
 | `references/progenitor.md` | Progenitor pattern, founder of the network, DnaProperties struct, check_if_progenitor, bootstrap mode, coordinator guard, integrity enforcement (Moss pattern), auto-registration in create_user, deploy-time injection (dna.yaml / Sweettest / Kangaroo / Moss) |
 | `references/scaffolding.md` | New project setup, Holonix installation, Nix flake, hc CLI, `hc scaffold` commands, new domain, adding a new domain to existing project |
-| `references/patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation (`FlatOp`, `TypedAction<D>`), HDK 0.7 get/link API (`GetStrategy`, `LinkQuery`, `GetOptions`, get_links), update chain, cross-DNA calls, warrants and chain forks, must_get, signals (remote signal, init cap grant) |
+| `references/patterns.md` | Entry types, link types, CRUD, cross-zome calls, validation (`FlatOp`, `TypedAction<D>`), HDK 0.7 get/link API (`GetStrategy`, `LinkQuery`, `GetOptions`, get_links), update chain, `ZomeCallResponse` variants (NetworkError, Unauthorized), warrants and chain forks, must_get, signals (remote signal, init cap grant) |
 | `references/access-control.md` | Cap grants, capability grants, capability system, cap claim, remote signal, recv_remote_signal setup, admin-only access |
 | `references/cryptography.md` | App-level signing and encryption: `sign`, `sign_ephemeral`, `verify_signature` in validation, secretbox vs box, `create_x25519_keypair`, encrypting to an AgentPubKey, and what encryption does not buy you |
 | `references/scheduling.md` | Scheduled functions, `schedule()`, `Schedule::Persisted` crontab vs `Schedule::Ephemeral`, `#[hdk_extern(infallible)]`, scheduler loop timing, why scheduled fns run as the chain author |
@@ -71,7 +71,7 @@ Load on demand based on task:
 | `references/testing.md` | Four-layer strategy, Sweettest (Rust-native), two agents, await_consistency, E2E Playwright + AdminWebsocket, Wind-Tunnel performance |
 | `references/wind-tunnel.md` | Performance/load testing with wind-tunnel: ScenarioDefinitionBuilder, call_zome, ReportMetric, multi-agent roles, sync lag, DHT sync lag measurement, load testing, InfluxDB metrics pipeline |
 | `references/client.md` | holochain-client setup, callZome, signals, SvelteKit integration |
-| `references/troubleshooting.md` | **Any literal error string** from the compiler, conductor, `hc` CLI or a test. Check here first when something fails |
+| `references/troubleshooting.md` | **Any literal error string** from the compiler, conductor, `hc` CLI or a test, keyed on the text you actually saw. Check here first when something fails. Build and compile errors, cannot find type, no variant named, unresolved import, feature does not exist, `hc scaffold` errors, integrity zome, scaffolder rc pins, conductor startup, peers never connect, validation passes locally but fails for other agents, test failures, deployment and data reset symptoms |
 | `references/networking.md` | Kitsune2 and iroh transport, conductor `NetworkConfig`, `bootstrap_url`, `relay_url`, running your own bootstrap server, arc factor and leecher nodes, request timeouts, gossip reporting |
 | `references/debugging.md` | Nothing threw but something is wrong: `RUST_LOG` and `WASM_LOG`, `hc sandbox` subcommands, `hc-client call` admin requests, dump-state, dump-network-stats, dump-network-metrics, calling a zome function by hand |
 | `references/membranes.md` | Membrane proof, `genesis_self_check`, gating who may join, `AgentValidationPkg` validation, `provideMemproofs`, `awaiting_memproofs`, invite codes |
