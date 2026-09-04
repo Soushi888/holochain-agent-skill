@@ -150,11 +150,11 @@ Every method below is now covered by an automated job in `.github/workflows/vali
 `files` array, the archive builder or the flake. Each one starts from a clean scratch
 directory.
 
-### Option A - npm installer, the documented default
+### Option A - release archive, the documented default
 
 ```bash
-mkdir -p /tmp/t6a && cd /tmp/t6a
-bunx holochain-agent-skills install --yes
+mkdir -p /tmp/t6a/.claude/skills && cd /tmp/t6a
+curl -fsSL https://github.com/Soushi888/holochain-agent-skills/releases/download/v1.0.0-rc.1/holochain-agent-skills.tar.gz | tar -xz -C .claude/skills
 ```
 
 | # | Test | Pass condition |
@@ -165,7 +165,11 @@ bunx holochain-agent-skills install --yes
 | T6.4 | No workshop files leaked | No `book.toml`, `SUMMARY.md`, `CHANGELOG.md`, `CLAUDE.md`, `docs/` or `scripts/` under the installed directory |
 | T6.5 | No build output copied | No `target/` or `node_modules/` under the installed directory |
 
-### Option B - harness detection
+### Option B - harness detection, via the bundled installer
+
+Build it from a clone first (`bun run build`), then run `node <clone>/bin/install.mjs install`
+from each scratch directory. Registry publishing is off, so this is how the installer is
+reached; the detection logic itself is unchanged.
 
 | # | Test | Setup | Pass condition |
 |---|------|-------|----------------|
@@ -175,9 +179,11 @@ bunx holochain-agent-skills install --yes
 | T6.9 | Several detected, TTY | Same, under a pty | Prompts, honours a numeric selection, installs only what was chosen |
 | T6.10 | Unknown target | `--target nope` | Exits 2 and names the known targets |
 
-### Option C - release archive, the no-npm path
+### Option C - archive integrity and the stable URL
 
 ```bash
+# a stable (non-prerelease) tag also answers at the latest/download URL;
+# a prerelease is skipped by it by design, so name the tag for a candidate
 mkdir -p /tmp/t6c/.claude/skills && cd /tmp/t6c
 curl -fsSL https://github.com/Soushi888/holochain-agent-skills/releases/latest/download/holochain-agent-skills.tar.gz | tar -xz -C .claude/skills
 ```
@@ -364,7 +370,7 @@ Covered by T7 and T9 above.
 | T11.4 | No broken markdown links | Scan for relative markdown links in all files | All linked files exist |
 | T11.5 | No TODO / STUB markers | `grep -rn "TODO\|STUB\|PLACEHOLDER" . --include="*.md"` | Zero matches in non-Plans/ files |
 | T11.6 | README install command is the one that works | Run the first fenced command in README.md verbatim in a scratch directory | Skill installed, exit 0 |
-| T11.8 | Nothing outside the payload ships | `npm pack --dry-run` | Every path is under `skills/`, `bin/`, or is `README.md` / `LICENSE` / `package.json` |
+| T11.8 | Nothing outside the payload ships | `npm pack --dry-run` (the packaging manifest is still the payload allowlist, whether or not the package is published) | Every path is under `skills/`, `bin/`, or is `README.md` / `LICENSE` / `package.json` |
 | T11.9 | The four version declarations agree | `sh scripts/check-versions.sh` | Exit 0 |
 | T11.7 | CLAUDE.md license annotation | `grep "Apache" CLAUDE.md` | Matches `Apache-2.0` |
 

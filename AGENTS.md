@@ -11,29 +11,33 @@ here, read the second.
 Run this from the root of the project that should get the skill:
 
 ```bash
-bunx holochain-agent-skills install --yes
+mkdir -p .claude/skills && curl -fsSL \
+  https://github.com/Soushi888/holochain-agent-skills/releases/download/v1.0.0-rc.1/holochain-agent-skills.tar.gz \
+  | tar -xz -C .claude/skills
 ```
 
-It detects which agent harnesses the project uses, installs into every one it
-finds, and prints where each copy landed. It never prompts when there is no
-interactive terminal, so it is safe to run unattended. `npx` works identically
-if `bun` is unavailable.
+Replace `.claude/skills` with your harness's path if it differs: `.agents/skills` for the
+tool-agnostic location, `.opencode/skills`, `.github/skills` for Copilot, `.gemini/skills`,
+`.cursor/skills`. Extract into more than one if the project uses more than one harness. The
+archive's root is one directory per skill, so the extraction lands
+`.claude/skills/holochain/SKILL.md` with no rename step and no `--strip-components`.
 
-No `bun` and no `npx`:
+Each release also publishes `SHA256SUMS` beside the archive if you want to verify the
+download, and a `.zip` if `tar` is unavailable.
+
+If you would rather have every harness detected and filled in one command, the repository
+ships an installer:
 
 ```bash
-mkdir -p .claude/skills && curl -fsSL https://github.com/Soushi888/holochain-agent-skills/releases/latest/download/holochain-agent-skills.tar.gz | tar -xz -C .claude/skills
+git clone https://github.com/Soushi888/holochain-agent-skills /tmp/has
+cd /tmp/has && bun run build
+cd your-project && node /tmp/has/bin/install.mjs install --yes
 ```
 
-Replace `.claude/skills` with your harness's path if it differs. The archive's
-root is one directory per skill, so the extraction lands
-`.claude/skills/holochain/SKILL.md` with no rename step.
-
-Useful flags: `--global` installs into the home-directory scope instead of the
-project, `--target claude,opencode` picks specific harnesses, `--link`
-symlinks rather than copies so a `git pull` updates the install, and
-`--dry-run` prints what would happen. `bunx holochain-agent-skills list` shows
-the skills in the package and every harness path it knows.
+It never prompts when there is no interactive terminal, so it is safe to run unattended.
+Useful flags: `--global` for the home-directory scope, `--target claude,opencode` to pick
+specific harnesses, `--link` to symlink rather than copy, and `--dry-run` to print what would
+happen. `install.mjs list` shows every skill and every harness path it knows.
 
 ### Confirming it worked
 

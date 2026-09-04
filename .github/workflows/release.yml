@@ -30,9 +30,10 @@ jobs:
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           # A hyphen in the version is the semver prerelease marker, so
           # v1.0.0-rc.1 is a release candidate and v1.0.0 is not. A candidate
-          # must never become what `bunx holochain-agent-skills` or the
-          # releases/latest/download URL hands out, so it goes to npm under the
-          # `next` dist-tag and to GitHub as a prerelease, which that URL skips.
+          # must never become what the releases/latest/download URL hands out,
+          # so it is marked a GitHub prerelease, which that URL skips. The npm
+          # dist-tag is computed alongside it and is unused while registry
+          # publishing is off; it costs one line and keeps the two in step.
           case "${TAG#v}" in
             *-*) PRERELEASE=true;  NPM_TAG=next   ;;
             *)   PRERELEASE=false; NPM_TAG=latest ;;
@@ -124,7 +125,14 @@ jobs:
           test -s /tmp/release-notes.md
 
       - name: Publish to npm
-        if: github.event_name == 'push'
+        # Off by default. Registry publishing is deferred, not abandoned: the
+        # release archive, the Nix flake and the bundled installer cover every
+        # documented install path, and the package name would change if the
+        # @holochain scope is granted. Re-enable by setting the repository
+        # variable NPM_PUBLISH to true, with an NPM_TOKEN whose "Bypass 2FA"
+        # setting is on (false by default at creation, and required by an
+        # account that enforces 2FA for writes).
+        if: github.event_name == 'push' && vars.NPM_PUBLISH == 'true'
         run: npm publish --provenance --access public --tag "${{ steps.tag.outputs.npm_tag }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

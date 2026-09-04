@@ -70,23 +70,19 @@ One version, declared in four places, and one tag. `package.json`, the `metadata
 
 1. Set the version in the three in-tree places and write the `## [X.Y.Z] - YYYY-MM-DD` changelog section. The workflow extracts that section verbatim as the GitHub release body, so an empty section ships an empty release.
 2. Run the gates locally: `sh scripts/validate-skill.sh`, `sh scripts/eval/run-eval.sh`, `sh scripts/check-versions.sh vX.Y.Z`, `bun run build`, `sh scripts/build-release-assets.sh`, `sh scripts/check-reproducible.sh`, `nix flake check`.
-3. Merge to `main`, then push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`. `release.yml` re-runs every gate, publishes the npm package with provenance, and creates the GitHub release with the `.tar.gz`, the `.zip` and `SHA256SUMS`.
+3. Merge to `main`, then push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`. `release.yml` re-runs every gate and creates the GitHub release with the `.tar.gz`, the `.zip` and `SHA256SUMS`.
 
 To rehearse without publishing, run `release.yml` by hand from the Actions tab (`workflow_dispatch`) with the tag as input: every gate and every build step runs, and the two publishing steps are skipped.
 
 ### Release candidates
 
-A tag whose version carries a hyphen, such as `v1.0.0-rc.1`, is a prerelease, and the workflow treats it as one: the npm package is published under the `next` dist-tag rather than `latest`, and the GitHub release is marked as a prerelease, which the `releases/latest/download` URL in the README skips. So a candidate never reaches anyone who runs the plain install command; testers opt in with:
+A tag whose version carries a hyphen, such as `v1.0.0-rc.1`, is a prerelease, and the workflow marks the GitHub release as one. The `releases/latest/download` URL skips prereleases, so a candidate never reaches anyone following the stable install line; testers opt in by naming the candidate's own tag in the archive URL from its release page. The version string is the full `1.0.0-rc.1` in all three in-tree places, and the changelog section is `## [1.0.0-rc.1]`. When the candidate becomes the release, rename that section to `## [1.0.0]`, set the version to `1.0.0`, and tag `v1.0.0`; nothing else changes.
 
-```bash
-bunx holochain-agent-skills@next install --yes
-```
+### On registry publishing
 
-or with the candidate's own archive URL from the GitHub release page. The version string is the full `1.0.0-rc.1` in all three in-tree places, and the changelog section is `## [1.0.0-rc.1]`. When the candidate becomes the release, rename that section to `## [1.0.0]`, set the version to `1.0.0`, and tag `v1.0.0`; nothing else changes.
+The workflow still contains a `Publish to npm` step, and it is switched off: it runs only when the repository variable `NPM_PUBLISH` is set to `true`. Publishing is deferred rather than abandoned. The archive, the Nix flake and the bundled installer cover every install path, and the package name is likely to change if the `@holochain` scope is granted, so publishing under a name that would then be wrong buys nothing.
 
-### What the repository needs before the first publish
-
-`release.yml` publishes with `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`. That secret is not created by anything in this repository. A maintainer creates an npm granular access token with publish rights on `holochain-agent-skills` and adds it as the `NPM_TOKEN` repository secret before pushing the first tag. Without it every gate passes, every asset builds, and the run fails at `npm publish` with the tag already pushed.
+Turning it back on takes two things: an npm granular access token created with **Bypass 2FA** enabled, which is false by default at creation and is what an account requiring 2FA for writes demands from CI, stored as the `NPM_TOKEN` repository secret; and the `NPM_PUBLISH` variable set to `true`. The publish step is deliberately not a gate on the GitHub release, so a registry refusal can never again withhold archives that passed every check.
 
 ## Reporting a stale version pin
 

@@ -11,20 +11,18 @@ The 1.0 release candidate. Targets **Holochain 0.7 only**, a clean break from 0.
 This teaches a coding agent how to build a Holochain hApp: the coordinator and integrity split, DHT data modelling, entry and link types, CRUD and update chains, validation that stays deterministic, capability grants, cell cloning, signals, Sweettest, the TypeScript client, Nix environments, and packaging a `.webhapp` for desktop. 20 reference pages, 8 guided workflows, 17 templates, and an example hApp that compiles with a passing two-agent test suite.
 
 ```bash
-# npm, into whichever harnesses the project uses
-bunx holochain-agent-skills@next install --yes
-
-# or the archive, straight into a skills directory
 mkdir -p .claude/skills && curl -fsSL \
   https://github.com/Soushi888/holochain-agent-skills/releases/download/v1.0.0-rc.1/holochain-agent-skills.tar.gz \
   | tar -xz -C .claude/skills
 ```
 
+Swap `.claude/skills` for your harness's path if it differs. The archive root is one directory per skill, so it lands `holochain/SKILL.md` with no rename step, and `SHA256SUMS` ships beside it. Nix users can pin the flake instead, and there is a harness-detecting installer in the repository for filling several harnesses at once; both are in the README.
+
 **Why a candidate rather than 1.0.** Documentation about a moving target rots, and a rotted skill is worse than none: it produces confident code that does not compile, and it reads authoritative while doing it. Holochain 0.7 rewrote the Action model in July 2026, so this release carries CI that fails when the docs teach an API 0.7 removed, in shipped templates as well as in prose, and when a version pin disagrees with itself across files. Each of those gates was proven by seeding a defect and watching it fail, because a gate that never fails is not a gate.
 
 What none of that can measure is whether an agent that has never seen this repository routes to the right page and gets the code right on someone else's project. That needs your project. Install it, run it on real work, and open an issue for anything it gets wrong: the page it should have loaded, the API it got stale, the workflow that sent it sideways. That feedback is what turns this candidate into 1.0.
 
-The `next` dist-tag and the prerelease flag exist so this never reaches anyone who did not ask for it: `bunx holochain-agent-skills install` without `@next` and the `releases/latest/download` URL both continue to point at the previous stable release until 1.0.0 ships.
+The prerelease flag exists so this never reaches anyone who did not ask for it: `releases/latest/download` skips prereleases, so it keeps pointing at the previous stable release until 1.0.0 ships. Installing this candidate means naming its tag on purpose, which is the intent.
 
 ### Breaking
 
@@ -52,15 +50,18 @@ The `next` dist-tag and the prerelease flag exist so this never reaches anyone w
 
 ### Added
 
-- **npm package `holochain-agent-skills`** with a harness-detecting installer:
-  `bunx holochain-agent-skills install --yes`. It finds the agent harnesses a project
-  actually uses, installs into all of them, and never prompts without an interactive
-  terminal, so an agent or a CI job can run it unattended. Flags for `--global`,
-  `--target`, `--link`, `--dry-run` and `--list`
+- **A harness-detecting installer**, `scripts/install.ts`, built to `bin/install.mjs`. It
+  finds the agent harnesses a project actually uses, installs into all of them, and never
+  prompts without an interactive terminal, so an agent or a CI job can run it unattended.
+  Flags for `--global`, `--target`, `--link`, `--dry-run` and `--list`. Run it from a clone;
+  see the README. (A registry package was built and gated in CI, and publishing it is
+  deferred: the archive, the flake and this installer cover every install path, and the
+  package name is likely to change if the `@holochain` scope is granted.)
 - **GitHub release archives** (`.tar.gz` and `.zip`) rooted at one directory per skill, so
   `tar -xzf ... -C .claude/skills` installs in a single command. Published with
-  `SHA256SUMS`, reproducible byte for byte across builds of the same commit, plus a stable
-  `releases/latest/download/holochain-agent-skills.tar.gz` URL
+  `SHA256SUMS`, reproducible byte for byte across builds of the same commit. Stable releases
+  also answer at `releases/latest/download/holochain-agent-skills.tar.gz`; prereleases are
+  skipped by that URL by design, so a candidate is installed by naming its tag
 - **A Nix flake.** `packages.<system>.holochain` is rooted at the skill itself,
   `packages.<system>.default` is the bundle, and `lib.mkSkillsHook` replaces the rsync glue
   every consumer was writing by hand. The derivation runs the skill validator in its check

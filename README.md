@@ -1,7 +1,6 @@
 # Holochain Agent Skills
 
 [![Validate](https://github.com/Soushi888/holochain-agent-skills/actions/workflows/validate.yml/badge.svg)](https://github.com/Soushi888/holochain-agent-skills/actions/workflows/validate.yml)
-[![npm](https://img.shields.io/npm/v/holochain-agent-skills)](https://www.npmjs.com/package/holochain-agent-skills)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Soushi888/holochain-agent-skills)
 
 Agent skills for Holochain hApp development, built to the
@@ -12,52 +11,22 @@ GitHub Copilot, Cursor, Gemini CLI and every other tool that adopted the format.
 ## Install
 
 ```bash
-bunx holochain-agent-skills install --yes
+mkdir -p .claude/skills && curl -fsSL \
+  https://github.com/Soushi888/holochain-agent-skills/releases/download/v1.0.0-rc.1/holochain-agent-skills.tar.gz \
+  | tar -xz -C .claude/skills
 ```
 
-Run it from the root of the project that should get the skill. It detects which agent
-harnesses the project uses, installs into all of them, and prints where each copy landed.
-`npx` works the same if you do not have `bun`.
-
-Without either, one command and no pipe into a shell:
-
-```bash
-mkdir -p .claude/skills && curl -fsSL https://github.com/Soushi888/holochain-agent-skills/releases/latest/download/holochain-agent-skills.tar.gz | tar -xz -C .claude/skills
-```
+Run it from the root of the project that should get the skill, and replace `.claude/skills`
+with your harness's path if it differs (the table below lists them all). The archive's root is
+one directory per skill, so the extraction lands `skills/holochain/SKILL.md` with no rename
+step and no `--strip-components`. Every release also publishes `SHA256SUMS`, so you can verify
+what you downloaded.
 
 Restart your agent afterwards. Most harnesses read skills once, at startup. Then ask it
 anything about Holochain, or invoke it by name (`/holochain` in Claude Code).
 
 <details>
 <summary>Other ways to install</summary>
-
-**Pin it in the project.** Installing does not write into your tree, so the version is
-recorded where you can see it:
-
-```bash
-bun add -d holochain-agent-skills
-bunx holochain-skills install --yes
-```
-
-**Globally, for every project on the machine:**
-
-```bash
-bunx holochain-agent-skills install --global --yes
-```
-
-**Pick specific harnesses**, instead of every one detected:
-
-```bash
-bunx holochain-agent-skills install --target claude,opencode
-bunx holochain-agent-skills list          # every skill and every known harness path
-```
-
-**Symlink instead of copy**, so `git pull` updates the installed skill:
-
-```bash
-git clone https://github.com/Soushi888/holochain-agent-skills ~/holochain-agent-skills
-cd your-project && node ~/holochain-agent-skills/bin/install.mjs install --link
-```
 
 **Nix.** Either take the source tree and point at the subdirectory:
 
@@ -94,6 +63,26 @@ rsync glue and hits the same wall: Nix store paths are read-only and `rsync -a` 
 that mode, so the *second* `nix develop` fails with a permission error. The hook passes
 `--chmod=u+w`.
 
+**Clone it, and use the installer.** The repository ships a harness-detecting installer that
+finds every agent harness a project uses and installs into all of them at once:
+
+```bash
+git clone https://github.com/Soushi888/holochain-agent-skills ~/holochain-agent-skills
+cd ~/holochain-agent-skills && bun run build
+
+cd your-project
+node ~/holochain-agent-skills/bin/install.mjs install --yes
+```
+
+Useful flags: `--global` installs into the home-directory scope instead of the project,
+`--target claude,opencode` picks specific harnesses, `--dry-run` prints what would happen,
+and `--link` symlinks rather than copies so a `git pull` updates every installed copy at
+once. `install.mjs list` prints every skill and every harness path it knows.
+
+**Pin a version.** The archive URL above names its tag, so pinning is just choosing the tag.
+Release candidates are marked as prereleases, which means `releases/latest/download` skips
+them: it keeps pointing at the last stable release until 1.0.0 ships.
+
 **If you pinned this repository before 1.0, the path changed.** The repository root used to be
 the skill, so glue that copied the root worked. It no longer does, and it fails silently: the
 root now holds no `SKILL.md` at all, so a harness pointed at a copy of it finds no skill and
@@ -113,9 +102,10 @@ or drop the glue and use `lib.mkSkillsHook` above. The full breaking list is in
 
 ### Where it installs
 
-Detection looks for each harness's marker directory in the project root, or in `$HOME` with
-`--global`. Exactly one found means that one is used; several found means all of them, or an
-interactive choice if you are at a terminal; none found falls back to `.claude/skills` and
+Extract the archive into whichever path your harness reads. If you use the bundled installer
+instead, detection looks for each harness's marker directory in the project root, or in `$HOME`
+with `--global`: exactly one found means that one is used; several found means all of them, or
+an interactive choice if you are at a terminal; none found falls back to `.claude/skills` and
 `.agents/skills`.
 
 | Harness | Project path | Global path |
@@ -127,8 +117,8 @@ interactive choice if you are at a terminal; none found falls back to `.claude/s
 | Gemini CLI | `.gemini/skills` | `~/.gemini/skills` |
 | Cursor | `.cursor/skills` | `~/.cursor/skills` |
 
-The installer never prompts without an interactive terminal, so an agent or a CI job can run
-it unattended.
+The bundled installer never prompts without an interactive terminal, so an agent or a CI job
+can run it unattended.
 
 ## What it covers
 
